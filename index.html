@@ -307,10 +307,25 @@
 }
 
     function iniciarCamara() {
-        html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, onScanSuccess)
-        .then(() => document.getElementById('status-msg').style.display = 'none')
-        .catch(() => document.getElementById('status-msg').innerText = "Error: Cámara no detectada.");
-    }
+    // Agregamos una configuración más robusta para móviles
+    const config = { 
+        fps: 10, 
+        qrbox: { width: 250, height: 250 },
+        aspectRatio: 1.0 
+    };
+
+    html5QrCode.start(
+        { facingMode: "environment" }, 
+        config, 
+        onScanSuccess
+    ).then(() => {
+        document.getElementById('status-msg').style.display = 'none';
+    }).catch(err => {
+        console.error("Error de cámara:", err);
+        document.getElementById('status-msg').innerHTML = 
+            "<b style='color:red;'>Error:</b> No se pudo acceder a la cámara. <br>1. Asegúrate de usar HTTPS. <br>2. Dale permisos de cámara al navegador.";
+    });
+}
 
     function detenerCamara() { if(html5QrCode.isScanning) html5QrCode.stop(); }
 

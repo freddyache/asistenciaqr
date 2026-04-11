@@ -222,7 +222,7 @@
     </div>
 
 <script>
-    const scriptURL = 'https://script.google.com/macros/s/AKfycbyBtnu6twLxbR7uFVM1vD7soi5Wk5cl8VdW5UwUvKWhDxnqFzSgLRyFZZgdQ7XCVCWDtw/exec'; 
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbwoQ58k_n6KeiarpWzmt4Ad6UgbVMYMnULB5wbjRO2pXU41o1d_vvELXF2ad4MAR3_5Fw/exec'; 
 
     const html5QrCode = new Html5Qrcode("reader");
 
@@ -279,24 +279,21 @@
 
     // --- ACCIÓN: IMPRESIÓN ---
     function generarPDF() {
-        const bgId = document.getElementById('bg-id').value;
-        if(!bgId) return alert("Ingrese el ID de la imagen de fondo de Drive");
+    // Ya no se valida bgId porque está fijo en el script del servidor
+    const datos = {
+        action: 'imprimir',
+        tipo: document.getElementById('print-type').value, 
+        dni: document.getElementById('print-dni').value, 
+        gradoSeccion: document.getElementById('print-grado').value + document.getElementById('print-seccion').value 
+    };
 
-        const datos = {
-            action: 'imprimir',
-            bgId: bgId,
-            tipo: document.getElementById('print-type').value,
-            dni: document.getElementById('print-dni').value,
-            gradoSeccion: document.getElementById('print-grado').value + document.getElementById('print-seccion').value
-        };
+    alert("Generando PDF... por favor espere."); 
 
-        alert("Generando PDF... por favor espere a que abra la nueva pestaña.");
-
-        fetch(scriptURL, { method: 'POST', body: JSON.stringify(datos) })
-        .then(r => r.text()).then(url => {
-            if(url.includes("http")) window.open(url, '_blank'); else alert(url);
-        });
-    }
+    fetch(scriptURL, { method: 'POST', body: JSON.stringify(datos) }) 
+    .then(r => r.text()).then(url => {
+        if(url.includes("http")) window.open(url, '_blank'); else alert(url); 
+    });
+}
 
     function iniciarCamara() {
         html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, onScanSuccess)

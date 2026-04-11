@@ -3,31 +3,37 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aula PIP - Gestión</title>
+    <title>Aula PIP - Gestión Escolar</title>
     <script src="https://unpkg.com/html5-qrcode"></script>
     <style>
         :root {
-            --primary-color: #28a745;
-            --admin-color: #2e9aff;
+            --primary-green: #28a745;
+            --admin-blue: #2e9aff;
             --bg-gradient: linear-gradient(180deg, #d8dbf1 0%, #a4bdf5 100%);
         }
 
         body {
-            font-family: 'Segoe UI', sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             margin: 0;
             background: var(--bg-gradient);
             min-height: 100vh;
+            display: flex;
+            justify-content: center;
         }
 
         /* --- MENÚ HAMBURGUESA --- */
         .menu-btn {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            z-index: 1000;
+            position: fixed;
+            top: 15px;
+            left: 15px;
+            z-index: 1001;
             cursor: pointer;
+            background: var(--primary-green);
             color: white;
-            font-size: 24px;
+            padding: 8px 12px;
+            border-radius: 5px;
+            font-size: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
         }
 
         .side-menu {
@@ -37,9 +43,9 @@
             width: 280px;
             height: 100%;
             background: white;
-            box-shadow: 2px 0 10px rgba(0,0,0,0.2);
+            box-shadow: 2px 0 15px rgba(0,0,0,0.3);
             transition: 0.3s;
-            z-index: 999;
+            z-index: 1000;
             padding-top: 60px;
         }
 
@@ -47,58 +53,64 @@
 
         .menu-item {
             padding: 15px 25px;
-            display: flex;
-            align-items: center;
-            gap: 15px;
+            display: block;
             color: #333;
             text-decoration: none;
             border-bottom: 1px solid #eee;
+            font-weight: 500;
             cursor: pointer;
         }
 
-        .menu-item:hover { background: #f8f9fa; }
+        .menu-item:hover { background: #f4f4f4; color: var(--primary-green); }
 
-        /* --- CONTENEDOR PRINCIPAL --- */
+        /* --- CONTENEDOR --- */
         .container {
-            background-color: #fff;
+            background: white;
             width: 90%;
             max-width: 400px;
-            border-radius: 15px;
+            margin-top: 70px;
+            border-radius: 20px;
             overflow: hidden;
-            margin: 60px auto 20px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            height: fit-content;
         }
 
-        .header { background: var(--primary-color); color: white; text-align: center; padding: 20px; }
-        .header h1 { margin: 0; font-size: 20px; }
+        .header { background: var(--primary-green); color: white; text-align: center; padding: 20px; }
+        .header h1 { margin: 0; font-size: 22px; }
 
         .section { display: none; padding: 20px; }
         .section.active { display: block; }
 
-        /* --- ESTILOS DE FORMULARIO --- */
+        /* --- FORMULARIOS --- */
         .form-group { margin-bottom: 15px; }
-        label { display: block; font-weight: bold; margin-bottom: 5px; font-size: 14px; }
+        label { display: block; font-weight: bold; margin-bottom: 5px; font-size: 14px; color: #444; }
         .form-control {
-            width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box;
+            width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 10px; box-sizing: border-box; font-size: 15px;
         }
 
         .btn-main {
             width: 100%; padding: 15px; border: none; border-radius: 10px;
-            font-weight: bold; color: white; cursor: pointer; margin-top: 10px;
+            font-weight: bold; color: white; cursor: pointer; font-size: 16px; margin-top: 10px;
         }
-        .btn-save { background: var(--admin-color); }
-        .btn-qr { background: var(--primary-color); }
+        .btn-save { background: var(--admin-blue); }
+        .btn-save:disabled { background: #ccc; }
 
-        /* Estilos Cámara (Iguales a la versión anterior) */
-        .camera-container { border: 2px solid #a4e4ae; background: #f0fdf4; border-radius: 10px; padding: 15px; text-align: center; margin-bottom: 15px; }
-        #reader { width: 100%; border-radius: 8px; }
+        /* Cámara */
+        .camera-box {
+            border: 2px dashed var(--primary-green);
+            background: #f0fdf4;
+            border-radius: 15px;
+            padding: 10px;
+            text-align: center;
+            min-height: 200px;
+        }
+        #reader { width: 100%; border-radius: 10px; }
 
         .overlay {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.5); z-index: 998;
+            background: rgba(0,0,0,0.4); z-index: 999;
         }
         .overlay.active { display: block; }
-
     </style>
 </head>
 <body>
@@ -106,57 +118,81 @@
     <div class="menu-btn" onclick="toggleMenu()"> ☰ </div>
 
     <div class="side-menu" id="sideMenu">
-        <div class="menu-item" onclick="showSection('escaneo')">🏠 Escáner Asistencia</div>
-        <div class="menu-item" onclick="showSection('agregar')">👤 Agregar Alumno</div>
-        <div class="menu-item" onclick="alert('Próximamente...')">📊 Reporte de Asistencia</div>
-        <div class="menu-item" onclick="alert('Próximamente...')">🪪 Impresión de Carnets</div>
-        <div class="menu-item" onclick="alert('Próximamente...')">⚙️ Configuración</div>
+        <div class="menu-item" onclick="showSection('escaneo')">🏠 Escáner de Asistencia</div>
+        <div class="menu-item" onclick="showSection('agregar')">👤 Agregar Estudiante</div>
+        <div class="menu-item" onclick="alert('Módulo en desarrollo')">📊 Reporte de Asistencia</div>
+        <div class="menu-item" onclick="alert('Módulo en desarrollo')">🪪 Impresión de Carnets</div>
+        <div class="menu-item" onclick="alert('Módulo en desarrollo')">⚙️ Configuración</div>
     </div>
+    
     <div class="overlay" id="overlay" onclick="toggleMenu()"></div>
 
     <div class="container">
         <div class="header">
-            <h1 id="view-title">Aula PIP</h1>
+            <h1 id="view-title">Asistencia QR</h1>
         </div>
 
         <div id="escaneo" class="section active">
-            <div class="camera-container">
-                <div id="status">Iniciando cámara...</div>
+            <div class="camera-box">
+                <div id="status-camera">Cargando cámara...</div>
                 <div id="reader"></div>
             </div>
-            <div class="form-group">
-                <label>Estado:</label>
+            <div class="form-group" style="margin-top: 15px;">
+                <label>Tipo de Registro:</label>
                 <select id="status-select" class="form-control">
                     <option value="ENTRADA">INGRESO</option>
                     <option value="SALIDA">SALIDA</option>
                 </select>
             </div>
-            <p style="text-align: center; font-size: 12px; color: #666;">Usa el menú para agregar estudiantes manualmente.</p>
         </div>
 
         <div id="agregar" class="section">
             <div class="form-group">
                 <label>DNI / ID:</label>
-                <input type="number" id="new-dni" class="form-control" placeholder="Ej: 71234567">
+                <input type="number" id="new-dni" class="form-control" placeholder="DNI del alumno">
             </div>
             <div class="form-group">
                 <label>Nombres:</label>
-                <input type="text" id="new-nombres" class="form-control" placeholder="Ej: Juan Roberto">
+                <input type="text" id="new-nombres" class="form-control" placeholder="Ej: JUAN">
             </div>
             <div class="form-group">
                 <label>Apellidos:</label>
-                <input type="text" id="new-apellidos" class="form-control" placeholder="Ej: Perez Garcia">
+                <input type="text" id="new-apellidos" class="form-control" placeholder="Ej: PEREZ">
             </div>
+
+            <div style="display: flex; gap: 10px;">
+                <div class="form-group" style="flex: 1;">
+                    <label>Grado:</label>
+                    <select id="new-grado" class="form-control">
+                        <option value="1">1°</option>
+                        <option value="2">2°</option>
+                        <option value="3">3°</option>
+                        <option value="4">4°</option>
+                        <option value="5">5°</option>
+                    </select>
+                </div>
+                <div class="form-group" style="flex: 1;">
+                    <label>Sección:</label>
+                    <select id="new-seccion" class="form-control">
+                        <option value="A">A</option>
+                        <option value="B">B</option>
+                    </select>
+                </div>
+            </div>
+
             <div class="form-group">
-                <label>Celular:</label>
-                <input type="tel" id="new-celular" class="form-control" placeholder="Ej: 999888777">
+                <label>Teléfono:</label>
+                <input type="tel" id="new-celular" class="form-control" placeholder="Celular">
             </div>
-            <button class="btn-main btn-save" onclick="guardarNuevoAlumno()">Guardar Estudiante</button>
+
+            <button id="btn-save" class="btn-main btn-save" onclick="guardarAlumno()">Guardar Estudiante</button>
         </div>
     </div>
 
 <script>
-    const scriptURL = 'https://script.google.com/macros/s/AKfycbyUvf1qb_vNN0neT5x7wglvgtIKq3pSSmVCXwmnnVXxGloE5XhLU4u7fr8NxzZySeo_dA/exec'; // PEGA TU URL AQUÍ
+    // --- PEGA AQUÍ TU URL DE GOOGLE APPS SCRIPT ---
+    const scriptURL = 'TU_URL_DE_APPS_SCRIPT_AQUI'; 
+
     const html5QrCode = new Html5Qrcode("reader");
 
     function toggleMenu() {
@@ -165,60 +201,61 @@
     }
 
     function showSection(id) {
-        // Ocultar todas las secciones
         document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-        // Mostrar la seleccionada
         document.getElementById(id).classList.add('active');
+        document.getElementById('view-title').innerText = (id === 'escaneo') ? "Asistencia QR" : "Nuevo Estudiante";
         
-        // Cambiar título y cerrar menú
-        const titulos = {'escaneo': 'Asistencia QR', 'agregar': 'Nuevo Alumno'};
-        document.getElementById('view-title').innerText = titulos[id];
-        
-        // Manejar cámara
         if(id === 'escaneo') { iniciarCamara(); } else { detenerCamara(); }
         toggleMenu();
     }
 
-    // --- LÓGICA DE ASISTENCIA ---
     function onScanSuccess(decodedText) {
         const estado = document.getElementById('status-select').value;
-        fetch(scriptURL, {
-            method: 'POST',
-            body: JSON.stringify({ action: 'asistencia', id: decodedText, estado: estado })
-        })
-        .then(r => r.text()).then(msg => {
-            alert(msg);
-            location.reload();
+        html5QrCode.stop().then(() => {
+            fetch(scriptURL, {
+                method: 'POST',
+                body: JSON.stringify({ action: 'asistencia', id: decodedText, estado: estado })
+            })
+            .then(r => r.text()).then(msg => {
+                alert(msg);
+                location.reload();
+            });
         });
     }
 
-    // --- LÓGICA AGREGAR ALUMNO ---
-    function guardarNuevoAlumno() {
+    function guardarAlumno() {
+        const btn = document.getElementById('btn-save');
         const datos = {
             action: 'agregar',
             id: document.getElementById('new-dni').value,
-            nombres: document.getElementById('new-nombres').value,
-            apellidos: document.getElementById('new-apellidos').value,
-            celular: document.getElementById('new-celular').value
+            nombres: document.getElementById('new-nombres').value.toUpperCase(),
+            apellidos: document.getElementById('new-apellidos').value.toUpperCase(),
+            gradoSeccion: document.getElementById('new-grado').value + document.getElementById('new-seccion').value,
+            telefono: document.getElementById('new-celular').value,
+            perfil: "ESTUDIANTE"
         };
 
-        if(!datos.id || !datos.nombres) return alert("DNI y Nombres son obligatorios");
+        if(!datos.id || !datos.nombres) return alert("Completa DNI y Nombres");
 
-        fetch(scriptURL, {
-            method: 'POST',
-            body: JSON.stringify(datos)
-        })
+        btn.disabled = true;
+        btn.innerText = "Enviando...";
+
+        fetch(scriptURL, { method: 'POST', body: JSON.stringify(datos) })
         .then(r => r.text()).then(msg => {
             alert(msg);
             showSection('escaneo');
+        }).finally(() => {
+            btn.disabled = false;
+            btn.innerText = "Guardar Estudiante";
         });
     }
 
-    // Funciones de cámara (Iguales a las anteriores)
     function iniciarCamara() {
         html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, onScanSuccess)
-        .catch(err => document.getElementById('status').innerText = "Cámara apagada");
+        .then(() => document.getElementById('status-camera').style.display = 'none')
+        .catch(() => document.getElementById('status-camera').innerText = "Error al abrir cámara");
     }
+
     function detenerCamara() {
         if(html5QrCode.isScanning) html5QrCode.stop();
     }

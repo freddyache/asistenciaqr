@@ -3,19 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aula PIP - Gestión Integral</title>
+    <title>Sistema Aula PIP - Gestión Integral</title>
     <script src="https://unpkg.com/html5-qrcode"></script>
     <style>
         :root {
-            --primary-green: #28a745;
-            --admin-blue: #2e9aff;
-            --bg-gradient: linear-gradient(180deg, #d8dbf1 0%, #a4bdf5 100%);
+            --primary: #28a745;
+            --secondary: #2e9aff;
+            --dark: #343a40;
+            --light: #f8f9fa;
         }
 
         body {
-            font-family: 'Segoe UI', sans-serif;
+            font-family: 'Segoe UI', Tahoma, sans-serif;
             margin: 0;
-            background: var(--bg-gradient);
+            background: linear-gradient(180deg, #d8dbf1 0%, #a4bdf5 100%);
             min-height: 100vh;
             display: flex;
             justify-content: center;
@@ -28,12 +29,12 @@
             left: 15px;
             z-index: 1001;
             cursor: pointer;
-            background: var(--primary-green);
+            background: var(--primary);
             color: white;
-            padding: 10px 15px;
+            padding: 10px 14px;
             border-radius: 8px;
             font-size: 22px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
         }
 
         .side-menu {
@@ -43,8 +44,8 @@
             width: 280px;
             height: 100%;
             background: white;
-            box-shadow: 2px 0 15px rgba(0,0,0,0.3);
-            transition: 0.3s ease;
+            box-shadow: 3px 0 15px rgba(0,0,0,0.3);
+            transition: 0.3s ease-in-out;
             z-index: 1000;
             padding-top: 70px;
         }
@@ -56,12 +57,12 @@
             display: block;
             color: #333;
             text-decoration: none;
-            border-bottom: 1px solid #f0f0f0;
-            font-weight: 500;
+            border-bottom: 1px solid #eee;
+            font-weight: 600;
             cursor: pointer;
         }
 
-        .menu-item:hover { background: #f8f9fa; color: var(--primary-green); }
+        .menu-item:hover { background: var(--light); color: var(--primary); }
 
         /* --- CONTENEDOR PRINCIPAL --- */
         .container {
@@ -76,49 +77,45 @@
             height: fit-content;
         }
 
-        .header { background: var(--primary-green); color: white; text-align: center; padding: 25px; }
-        .header h1 { margin: 0; font-size: 22px; letter-spacing: 1px; }
+        .header { background: var(--primary); color: white; text-align: center; padding: 25px; }
+        .header h1 { margin: 0; font-size: 22px; }
 
         .section { display: none; padding: 25px; }
         .section.active { display: block; }
 
-        /* --- FORMULARIOS --- */
-        .form-group { margin-bottom: 18px; }
-        label { display: block; font-weight: bold; margin-bottom: 8px; font-size: 14px; color: #444; }
+        /* --- ESTILOS DE FORMULARIO --- */
+        .form-group { margin-bottom: 15px; }
+        label { display: block; font-weight: bold; margin-bottom: 5px; font-size: 13px; color: #555; }
         .form-control {
-            width: 100%; padding: 12px; border: 1px solid #ced4da; border-radius: 10px; box-sizing: border-box; font-size: 15px; outline: none;
+            width: 100%; padding: 12px; border: 1px solid #ced4da; border-radius: 10px; box-sizing: border-box; font-size: 15px;
         }
-        .form-control:focus { border-color: var(--admin-blue); box-shadow: 0 0 0 3px rgba(46, 154, 255, 0.1); }
 
         .btn-main {
             width: 100%; padding: 15px; border: none; border-radius: 12px;
-            font-weight: bold; color: white; cursor: pointer; font-size: 16px; transition: 0.2s;
+            font-weight: bold; color: white; cursor: pointer; font-size: 16px; margin-top: 10px; transition: 0.2s;
         }
         .btn-main:active { transform: scale(0.98); }
-        .btn-green { background: var(--primary-green); }
-        .btn-blue { background: var(--admin-blue); }
-        .btn-gray { background: #6c757d; }
+        .btn-blue { background: var(--secondary); }
+        .btn-green { background: var(--primary); }
+        .btn-dark { background: var(--dark); }
 
-        /* --- CÁMARA --- */
+        /* --- ESCÁNER --- */
         .camera-box {
-            border: 2px dashed var(--primary-green);
+            border: 2px dashed var(--primary);
             background: #f0fdf4;
             border-radius: 15px;
             padding: 10px;
             text-align: center;
             min-height: 220px;
-            position: relative;
         }
         #reader { width: 100%; border-radius: 10px; }
-        #status-camera { padding: 40px 0; color: #666; font-weight: 500; }
+        #status-msg { padding: 20px; color: #666; font-style: italic; }
 
         .overlay {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.4); z-index: 999;
         }
         .overlay.active { display: block; }
-        
-        hr { border: 0; border-top: 1px solid #eee; margin: 20px 0; }
     </style>
 </head>
 <body>
@@ -126,13 +123,10 @@
     <div class="menu-btn" onclick="toggleMenu()"> ☰ </div>
 
     <div class="side-menu" id="sideMenu">
-        <div class="menu-item" onclick="showSection('escaneo')">🏠 Escáner de Asistencia</div>
+        <div class="menu-item" onclick="showSection('escaneo')">🏠 Escáner Asistencia</div>
         <div class="menu-item" onclick="showSection('agregar')">👤 Agregar Estudiante</div>
         <div class="menu-item" onclick="showSection('impresion')">🪪 Impresión de Carnets</div>
-        <div class="menu-item" onclick="alert('Módulo en desarrollo...')">📊 Reporte General</div>
-        <div class="menu-item" onclick="alert('Módulo en desarrollo...')">⚙️ Configuración</div>
     </div>
-    
     <div class="overlay" id="overlay" onclick="toggleMenu()"></div>
 
     <div class="container">
@@ -142,7 +136,7 @@
 
         <div id="escaneo" class="section active">
             <div class="camera-box">
-                <div id="status-camera">Cargando cámara trasera...</div>
+                <div id="status-msg">Iniciando cámara...</div>
                 <div id="reader"></div>
             </div>
             <div class="form-group" style="margin-top: 20px;">
@@ -156,8 +150,8 @@
 
         <div id="agregar" class="section">
             <div class="form-group">
-                <label>DNI / ID:</label>
-                <input type="number" id="new-dni" class="form-control" placeholder="DNI del alumno">
+                <label>DNI (ID):</label>
+                <input type="number" id="new-dni" class="form-control" placeholder="Número de DNI">
             </div>
             <div class="form-group">
                 <label>Nombres:</label>
@@ -167,51 +161,47 @@
                 <label>Apellidos:</label>
                 <input type="text" id="new-apellidos" class="form-control" placeholder="EJ: PEREZ GARCIA">
             </div>
-
             <div style="display: flex; gap: 10px;">
-                <div class="form-group" style="flex: 1;">
+                <div style="flex:1">
                     <label>Grado:</label>
                     <select id="new-grado" class="form-control">
                         <option value="1">1°</option><option value="2">2°</option><option value="3">3°</option><option value="4">4°</option><option value="5">5°</option>
                     </select>
                 </div>
-                <div class="form-group" style="flex: 1;">
+                <div style="flex:1">
                     <label>Sección:</label>
                     <select id="new-seccion" class="form-control">
                         <option value="A">A</option><option value="B">B</option>
                     </select>
                 </div>
             </div>
-
-            <div class="form-group">
+            <div class="form-group" style="margin-top:15px;">
                 <label>Teléfono:</label>
-                <input type="tel" id="new-celular" class="form-control" placeholder="Celular de contacto">
+                <input type="tel" id="new-celular" class="form-control" placeholder="999888777">
             </div>
-
-            <button id="btn-save" class="btn-main btn-blue" onclick="guardarAlumno()">Guardar Estudiante</button>
+            <button class="btn-main btn-blue" onclick="guardarAlumno()">Guardar Estudiante</button>
         </div>
 
         <div id="impresion" class="section">
             <div class="form-group">
-                <label>ID Carpeta Drive (Guardado):</label>
-                <input type="text" id="folder-id" class="form-control" placeholder="ID de la carpeta de Google Drive">
+                <label>ID Imagen de Fondo (Google Drive):</label>
+                <input type="text" id="bg-id" class="form-control" placeholder="Pegue el ID de la imagen aquí">
             </div>
-
             <div class="form-group">
-                <label>Modalidad de Impresión:</label>
-                <select id="print-type" class="form-control" onchange="togglePrintInputs()">
-                    <option value="individual">Por Alumno Único (DNI)</option>
-                    <option value="seccion">Por Grado y Sección</option>
-                    <option value="todos">Todos los Registrados</option>
+                <label>Opción de Impresión:</label>
+                <select id="print-type" class="form-control" onchange="togglePrintFields()">
+                    <option value="individual">Por Alumno (DNI)</option>
+                    <option value="seccion">Por Sección Completa</option>
+                    <option value="todos">Todos los Alumnos</option>
                 </select>
             </div>
 
-            <div id="input-dni" class="form-group">
-                <label>DNI del Alumno:</label>
-                <input type="number" id="print-dni" class="form-control" placeholder="Ingrese DNI">
+            <div id="field-dni" class="form-group">
+                <label>Ingrese DNI:</label>
+                <input type="number" id="print-dni" class="form-control">
             </div>
 
-            <div id="input-seccion" class="form-group" style="display:none; gap:10px;">
+            <div id="field-seccion" class="form-group" style="display:none; gap:10px;">
                 <div style="flex:1">
                     <label>Grado:</label>
                     <select id="print-grado" class="form-control">
@@ -226,17 +216,13 @@
                 </div>
             </div>
 
-            <div style="display: flex; gap: 10px; margin-top: 25px;">
-                <button class="btn-main btn-gray" style="flex:1;" onclick="generarCarnet(true)">Vista Previa</button>
-                <button class="btn-main btn-blue" style="flex:1;" onclick="generarCarnet(false)">Generar PDF</button>
-            </div>
-            <p style="font-size: 11px; color: #777; margin-top: 10px; text-align: center;">El PDF organizará 8 carnets por hoja A4 automáticamente.</p>
+            <button class="btn-main btn-dark" onclick="generarPDF()">Generar PDF (8 por hoja)</button>
         </div>
     </div>
 
 <script>
-    // --- CONFIGURACIÓN ---
-    const scriptURL = 'https://script.google.com/macros/s/AKfycbyDJJ844nOlNFcBWflVqgWlT5l60pwrxIuWiB3MCt_UuqX8LB3EAOaOn8g_zYmD98VA/exec'; // <--- PEGA TU URL DE GOOGLE AQUÍ
+    // --- REEMPLAZA ESTA URL CON TU GOOGLE APPS SCRIPT ---
+    const scriptURL = 'TU_URL_DE_APPS_SCRIPT_AQUI'; 
 
     const html5QrCode = new Html5Qrcode("reader");
 
@@ -249,40 +235,33 @@
         document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
         document.getElementById(id).classList.add('active');
         
-        const titulos = {'escaneo': 'Asistencia QR', 'agregar': 'Nuevo Estudiante', 'impresion': 'Impresión Masiva'};
+        const titulos = {'escaneo':'Asistencia QR', 'agregar':'Nuevo Alumno', 'impresion':'Generador de Carnets'};
         document.getElementById('view-title').innerText = titulos[id];
         
-        if(id === 'escaneo') { iniciarCamara(); } else { detenerCamara(); }
+        if(id === 'escaneo') iniciarCamara(); else detenerCamara();
         toggleMenu();
     }
 
-    function togglePrintInputs() {
+    function togglePrintFields() {
         const type = document.getElementById('print-type').value;
-        document.getElementById('input-dni').style.display = (type === 'individual') ? 'block' : 'none';
-        document.getElementById('input-seccion').style.display = (type === 'seccion') ? 'flex' : 'none';
+        document.getElementById('field-dni').style.display = (type === 'individual') ? 'block' : 'none';
+        document.getElementById('field-seccion').style.display = (type === 'seccion') ? 'flex' : 'none';
     }
 
-    // --- LÓGICA: ASISTENCIA ---
-    function onScanSuccess(decodedText) {
-        const estado = document.getElementById('status-select').value;
+    // --- ACCIÓN: ASISTENCIA ---
+    function onScanSuccess(dni) {
+        const est = document.getElementById('status-select').value;
         html5QrCode.stop().then(() => {
-            document.getElementById('status-camera').innerText = "Procesando...";
-            document.getElementById('status-camera').style.display = 'block';
-            
             fetch(scriptURL, {
                 method: 'POST',
-                body: JSON.stringify({ action: 'asistencia', id: decodedText, estado: estado })
+                body: JSON.stringify({ action: 'asistencia', id: dni, estado: est })
             })
-            .then(r => r.text()).then(msg => {
-                alert(msg);
-                location.reload();
-            });
+            .then(r => r.text()).then(m => { alert(m); location.reload(); });
         });
     }
 
-    // --- LÓGICA: AGREGAR ALUMNO ---
+    // --- ACCIÓN: GUARDAR ALUMNO ---
     function guardarAlumno() {
-        const btn = document.getElementById('btn-save');
         const datos = {
             action: 'agregar',
             id: document.getElementById('new-dni').value,
@@ -292,59 +271,40 @@
             telefono: document.getElementById('new-celular').value,
             perfil: "ESTUDIANTE"
         };
-
-        if(!datos.id || !datos.nombres || !datos.apellidos) return alert("DNI, Nombres y Apellidos son obligatorios");
-
-        btn.disabled = true;
-        btn.innerText = "Guardando en Sheets...";
-
+        if(!datos.id || !datos.nombres) return alert("DNI y Nombres son obligatorios");
+        
         fetch(scriptURL, { method: 'POST', body: JSON.stringify(datos) })
-        .then(r => r.text()).then(msg => {
-            alert(msg);
-            showSection('escaneo');
-        }).finally(() => {
-            btn.disabled = false;
-            btn.innerText = "Guardar Estudiante";
-        });
+        .then(r => r.text()).then(m => { alert(m); showSection('escaneo'); });
     }
 
-    // --- LÓGICA: IMPRESIÓN ---
-    function generarCarnet(esPreview) {
-        const folderId = document.getElementById('folder-id').value;
-        if(!folderId) return alert("Ingresa el ID de la carpeta de Drive destino");
+    // --- ACCIÓN: IMPRESIÓN ---
+    function generarPDF() {
+        const bgId = document.getElementById('bg-id').value;
+        if(!bgId) return alert("Ingrese el ID de la imagen de fondo de Drive");
 
         const datos = {
             action: 'imprimir',
-            preview: esPreview,
+            bgId: bgId,
             tipo: document.getElementById('print-type').value,
             dni: document.getElementById('print-dni').value,
-            gradoSeccion: document.getElementById('print-grado').value + document.getElementById('print-seccion').value,
-            folderId: folderId
+            gradoSeccion: document.getElementById('print-grado').value + document.getElementById('print-seccion').value
         };
 
-        alert(esPreview ? "Generando Vista Previa en Docs..." : "Generando PDF con 8 carnets por hoja...");
+        alert("Generando PDF... por favor espere a que abra la nueva pestaña.");
 
         fetch(scriptURL, { method: 'POST', body: JSON.stringify(datos) })
-        .then(r => r.text())
-        .then(res => {
-            if(res.includes("http")) {
-                window.open(res, '_blank');
-            } else {
-                alert(res);
-            }
+        .then(r => r.text()).then(url => {
+            if(url.includes("http")) window.open(url, '_blank'); else alert(url);
         });
     }
 
-    // --- CONTROL DE CÁMARA ---
     function iniciarCamara() {
         html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, onScanSuccess)
-        .then(() => document.getElementById('status-camera').style.display = 'none')
-        .catch(() => document.getElementById('status-camera').innerText = "Error: Acceso a cámara denegado.");
+        .then(() => document.getElementById('status-msg').style.display = 'none')
+        .catch(() => document.getElementById('status-msg').innerText = "Error: Cámara no detectada.");
     }
 
-    function detenerCamara() {
-        if(html5QrCode.isScanning) html5QrCode.stop();
-    }
+    function detenerCamara() { if(html5QrCode.isScanning) html5QrCode.stop(); }
 
     window.onload = iniciarCamara;
 </script>

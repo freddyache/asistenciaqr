@@ -156,7 +156,7 @@
     </div>
 
 <script>
-    const scriptURL = 'https://script.google.com/macros/s/AKfycbwrjTAQXtatTbZYIrpHcaKGJMmFAo1bNHjX3JfGoeB8UL1Ys3orKD_iZe-7Ixvl6MSASw/exec'; // PEGA TU URL AQUÍ
+    const scriptURL = 'TU_URL_DE_APPS_SCRIPT_AQUI'; // PEGA TU URL AQUÍ
     const html5QrCode = new Html5Qrcode("reader");
 
     function toggleMenu() {
@@ -193,101 +193,26 @@
     }
 
     // --- LÓGICA AGREGAR ALUMNO ---
-    <div id="agregar" class="section">
-    <div class="form-group">
-        <label>DNI / ID:</label>
-        <input type="number" id="new-dni" class="form-control" placeholder="Ingrese DNI">
-    </div>
-    <div class="form-group">
-        <label>Nombres:</label>
-        <input type="text" id="new-nombres" class="form-control" placeholder="Ej: ROBERTO">
-    </div>
-    <div class="form-group">
-        <label>Apellidos:</label>
-        <input type="text" id="new-apellidos" class="form-control" placeholder="Ej: SANCHEZ MICHA">
-    </div>
-    
-    <div style="display: flex; gap: 10px;">
-        <div class="form-group" style="flex: 1;">
-            <label>Grado:</label>
-            <select id="new-grado" class="form-control">
-                <option value="1">1°</option>
-                <option value="2">2°</option>
-                <option value="3">3°</option>
-                <option value="4">4°</option>
-                <option value="5">5°</option>
-            </select>
-        </div>
-        <div class="form-group" style="flex: 1;">
-            <label>Sección:</label>
-            <select id="new-seccion" class="form-control">
-                <option value="A">A</option>
-                <option value="B">B</option>
-            </select>
-        </div>
-    </div>
-
-    <div class="form-group">
-        <label>Celular (Teléfono):</label>
-        <input type="tel" id="new-celular" class="form-control" placeholder="Ej: 999999999">
-    </div>
-    
-    <button id="btn-save-student" class="btn-main btn-save" onclick="guardarNuevoAlumno()">Guardar Estudiante</button>
-</div>
-
-<script>
-    // --- LÓGICA PARA ENVIAR A GOOGLE SHEETS ---
     function guardarNuevoAlumno() {
-        const btn = document.getElementById('btn-save-student');
-        const dni = document.getElementById('new-dni').value.trim();
-        const nombres = document.getElementById('new-nombres').value.trim().toUpperCase();
-        const apellidos = document.getElementById('new-apellidos').value.trim().toUpperCase();
-        const grado = document.getElementById('new-grado').value;
-        const seccion = document.getElementById('new-seccion').value;
-        const celular = document.getElementById('new-celular').value.trim();
-
-        if (!dni || !nombres || !apellidos) {
-            alert("Por favor, completa DNI, Nombres y Apellidos.");
-            return;
-        }
-
-        btn.disabled = true;
-        btn.innerText = "Guardando...";
-
         const datos = {
             action: 'agregar',
-            id: dni,
-            nombres: nombres,
-            apellidos: apellidos,
-            gradoSeccion: grado + seccion, // Junta "1" y "A" -> "1A"
-            telefono: celular,
-            perfil: "ESTUDIANTE" // Valor por defecto
+            id: document.getElementById('new-dni').value,
+            nombres: document.getElementById('new-nombres').value,
+            apellidos: document.getElementById('new-apellidos').value,
+            celular: document.getElementById('new-celular').value
         };
+
+        if(!datos.id || !datos.nombres) return alert("DNI y Nombres son obligatorios");
 
         fetch(scriptURL, {
             method: 'POST',
             body: JSON.stringify(datos)
         })
-        .then(r => r.text())
-        .then(msg => {
+        .then(r => r.text()).then(msg => {
             alert(msg);
-            // Limpiar formulario y volver al escáner
-            document.getElementById('new-dni').value = "";
-            document.getElementById('new-nombres').value = "";
-            document.getElementById('new-apellidos').value = "";
-            document.getElementById('new-celular').value = "";
             showSection('escaneo');
-        })
-        .catch(err => {
-            alert("Error al conectar con el servidor");
-            console.error(err);
-        })
-        .finally(() => {
-            btn.disabled = false;
-            btn.innerText = "Guardar Estudiante";
         });
     }
-</script>
 
     // Funciones de cámara (Iguales a las anteriores)
     function iniciarCamara() {

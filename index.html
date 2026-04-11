@@ -57,22 +57,80 @@
         </div>
 
         <div id="impresion" class="section">
-            <label>Filtrar por:</label>
-            <select id="p-tipo" class="form-control" onchange="toggleP()">
-                <option value="individual">DNI Alumno</option>
-                <option value="seccion">Grado y Sección</option>
+    <div class="card">
+        <h3>🪪 Generador de Carnets</h3>
+        <p style="font-size: 0.9em; color: #666;">Seleccione el modo de generación. Se usarán 8 carnets por hoja A4.</p>
+        
+        <div class="form-group">
+            <label>Modo de Impresión:</label>
+            <select id="print-type" class="form-control" onchange="togglePrintFields()">
+                <option value="individual">Por Alumno (DNI)</option>
+                <option value="seccion">Por Grado y Sección</option>
                 <option value="todos">Toda la Institución</option>
             </select>
-            <div id="f-dni"><input type="number" id="p-dni" class="form-control" placeholder="DNI a buscar"></div>
-            <div id="f-seccion" style="display:none; gap:10px;">
-                <select id="p-grado" class="form-control"><option value="1">1°</option><option value="2">2°</option><option value="3">3°</option><option value="4">4°</option><option value="5">5°</option></select>
-                <select id="p-seccion" class="form-control"><option value="A">A</option><option value="B">B</option></select>
-            </div>
-            <button class="btn btn-dark" onclick="generarPDF()">Generar PDF (8 carnets)</button>
         </div>
+
+        <div id="field-dni" class="form-group">
+            <label>DNI del Estudiante:</label>
+            <input type="number" id="print-dni" class="form-control" placeholder="Ej: 71234567">
+        </div>
+
+        <div id="field-seccion" class="form-group" style="display:none; gap:10px;">
+            <div style="flex:1">
+                <label>Grado:</label>
+                <select id="print-grado" class="form-control">
+                    <option value="1">1°</option><option value="2">2°</option>
+                    <option value="3">3°</option><option value="4">4°</option><option value="5">5°</option>
+                </select>
+            </div>
+            <div style="flex:1">
+                <label>Sección:</label>
+                <select id="print-seccion" class="form-control">
+                    <option value="A">A</option><option value="B">B</option>
+                </select>
+            </div>
+        </div>
+
+        <button class="btn btn-dark" onclick="generarPDF()">Generar PDF ahora</button>
     </div>
+</div>
 
 <script>
+    // URL DEL SCRIPT (PROGRAMADOR)
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbwDGd4KR6nRNEGzsc8Bp2-Dgup6qQywL8f1aiWCLdehhrXhOPxD_nrJIQO2SHq51QrkeA/exec';
+
+    function togglePrintFields() {
+        const tipo = document.getElementById('print-type').value;
+        document.getElementById('field-dni').style.display = (tipo === 'individual') ? 'block' : 'none';
+        document.getElementById('field-seccion').style.display = (tipo === 'seccion') ? 'flex' : 'none';
+    }
+
+    function generarPDF() {
+        // YA NO SE PIDE EL bgId AQUÍ
+        const datos = {
+            action: 'imprimir',
+            tipo: document.getElementById('print-type').value,
+            dni: document.getElementById('print-dni').value,
+            gradoSeccion: document.getElementById('print-grado').value + document.getElementById('print-seccion').value
+        };
+
+        alert("Conectando con el servidor... El proceso puede tardar unos segundos.");
+
+        fetch(scriptURL, { 
+            method: 'POST', 
+            body: JSON.stringify(datos) 
+        })
+        .then(r => r.text())
+        .then(url => {
+            if(url.includes("http")) {
+                window.open(url, '_blank');
+            } else {
+                alert("Error: " + url);
+            }
+        })
+        .catch(err => alert("Error de conexión con el servidor."));
+    }
+</script>
     // --- CONFIGURACIÓN PARA EL PROGRAMADOR ---
     const scriptURL = 'https://script.google.com/macros/s/AKfycbwDGd4KR6nRNEGzsc8Bp2-Dgup6qQywL8f1aiWCLdehhrXhOPxD_nrJIQO2SHq51QrkeA/exec'; 
     // -----------------------------------------

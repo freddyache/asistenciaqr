@@ -1,924 +1,410 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Control de Asistencia QR</title>
-  <script src="https://unpkg.com/html5-qrcode"></script>
-  <style>
-    :root {
-      --primary: #4CAF50;
-      --primary-dark: #45a049;
-      --secondary: #2196F3;
-      --secondary-dark: #1976D2;
-      --success: #d4edda;
-      --success-text: #155724;
-      --error: #f8d7da;
-      --error-text: #721c24;
-      --warning: #fff3cd;
-      --warning-text: #856404;
-      --bg-main: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      --shadow: 0 4px 20px rgba(0,0,0,0.15);
-      --border-radius: 12px;
-      --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aula PIP - Asistencia</title>
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    <style>
+        :root {
+            --primary-color: #28a745; /* Verde del banner */
+            --bg-color: #f8f9fc; /* Fondo claro */
+            --shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
 
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(180deg, #d8dbf1 0%, #a4bdf5 100%); /* Fondo degradado morado/azul de la imagen */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
 
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background: var(--bg-main);
-      min-height: 100vh;
-      padding: 10px;
-      line-height: 1.5;
-    }
+        .container {
+            background-color: #fff;
+            width: 90%;
+            max-width: 400px;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            border: 1px solid rgba(0,0,0,0.1);
+        }
 
-    .container {
-      max-width: min(500px, 100vw - 20px);
-      margin: 0 auto;
-      background: white;
-      border-radius: var(--border-radius);
-      box-shadow: var(--shadow);
-      overflow: hidden;
-      animation: slideIn 0.5s ease-out;
-    }
+        /* Banner Superior Verde */
+        .header {
+            background-color: var(--primary-color);
+            color: white;
+            text-align: center;
+            padding: 20px;
+        }
 
-    @keyframes slideIn {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
+        .header h1 {
+            margin: 0;
+            font-size: 20px;
+            font-weight: bold;
+        }
 
-    .header {
-      background: var(--primary);
-      color: white;
-      padding: clamp(15px, 4vw, 25px);
-      text-align: center;
-    }
+        .header p {
+            margin: 5px 0 0;
+            font-size: 13px;
+            opacity: 0.9;
+        }
 
-    .header h1 {
-      font-size: clamp(18px, 5vw, 24px);
-      font-weight: 600;
-      margin-bottom: 5px;
-    }
+        /* Cuerpo de la App */
+        .content {
+            padding: 20px;
+        }
 
-    .header p {
-      font-size: clamp(12px, 3vw, 14px);
-      opacity: 0.9;
-    }
+        /* Area de la Cámara / Estado (Verde Claro) */
+        .camera-container {
+            border: 2px solid #a4e4ae;
+            background-color: #f0fdf4;
+            color: var(--primary-color);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
 
-    .content {
-      padding: clamp(15px, 5vw, 30px);
-    }
+        #reader {
+            width: 100%;
+            height: 100%;
+            max-height: 250px;
+            border-radius: 8px;
+            overflow: hidden;
+            display: none; /* Oculto hasta que se active */
+        }
 
-    .time-display {
-      background: linear-gradient(45deg, #e8f5e8, #f0fff0);
-      border: 2px solid var(--primary);
-      border-radius: var(--border-radius);
-      padding: 15px;
-      text-align: center;
-      margin-bottom: 20px;
-      font-size: clamp(14px, 4vw, 18px);
-      font-weight: 600;
-      color: #2e7d32;
-    }
+        #status {
+            font-weight: bold;
+            font-size: 16px;
+        }
 
-    .camera-toggle {
-      background: #f8f9fa;
-      border: 2px solid #e9ecef;
-      border-radius: var(--border-radius);
-      padding: 15px;
-      margin-bottom: 15px;
-      text-align: center;
-    }
+        /* Switch de Cámara (Activada) */
+        .toggle-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            border: 1px solid rgba(0,0,0,0.05);
+        }
 
-    .toggle-wrapper {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      margin-bottom: 10px;
-      flex-wrap: wrap;
-    }
+        .toggle-container label {
+            font-size: 14px;
+            color: #555;
+        }
 
-    .switch {
-      position: relative;
-      display: inline-block;
-      width: 50px;
-      height: 28px;
-    }
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 30px;
+        }
 
-    .switch input {
-      opacity: 0;
-      width: 0;
-      height: 0;
-    }
+        .switch input { 
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
 
-    .slider {
-      position: absolute;
-      cursor: pointer;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background-color: #ccc;
-      transition: var(--transition);
-      border-radius: 28px;
-    }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 34px;
+        }
 
-    .slider:before {
-      position: absolute;
-      content: "";
-      height: 22px;
-      width: 22px;
-      left: 3px;
-      bottom: 3px;
-      background-color: white;
-      transition: var(--transition);
-      border-radius: 50%;
-    }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 22px;
+            width: 22px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
 
-    input:checked + .slider {
-      background-color: var(--primary);
-    }
+        input:checked + .slider {
+            background-color: var(--primary-color);
+        }
 
-    input:checked + .slider:before {
-      transform: translateX(22px);
-    }
+        input:checked + .slider:before {
+            transform: translateX(30px);
+        }
 
-    .camera-controls {
-      display: none;
-      margin-bottom: 15px;
-    }
+        /* Campos de Entrada */
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
 
-    .camera-select select {
-      width: 100%;
-      padding: 10px;
-      border: 2px solid #ddd;
-      border-radius: var(--border-radius);
-      font-size: 14px;
-      background: white;
-    }
+        .form-label {
+            display: block;
+            font-size: 14px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 8px;
+        }
 
-    #reader {
-      width: 100%;
-      max-width: min(300px, 90vw);
-      margin: 0 auto 20px;
-      border: 2px dashed #ddd;
-      border-radius: var(--border-radius);
-      overflow: hidden;
-      display: none;
-    }
+        .form-control {
+            width: 100%;
+            padding: 12px;
+            font-size: 14px;
+            color: #555;
+            background-color: #fff;
+            border: 1px solid #ced4da;
+            border-radius: 8px;
+            box-sizing: border-box; /* Importante para el padding */
+            transition: border-color .15s ease-in-out;
+        }
 
-    .form-group {
-      margin-bottom: 20px;
-    }
+        .form-control:focus {
+            border-color: #2ecc71;
+            outline: 0;
+            box-shadow: 0 0 0 0.2rem rgba(46, 204, 113, 0.25);
+        }
 
-    .form-group label {
-      display: block;
-      margin-bottom: 8px;
-      font-weight: 600;
-      color: #333;
-      font-size: clamp(14px, 3.5vw, 16px);
-    }
+        /* Botón Registrar (Deshabilitado/Gris en la imagen) */
+        #btn-register {
+            width: 100%;
+            padding: 15px;
+            background-color: #ccc; /* Gris deshabilitado */
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: not-allowed;
+            margin-bottom: 25px;
+            transition: background-color 0.3s ease;
+        }
 
-    .form-group input,
-    .form-group select {
-      width: 100%;
-      padding: clamp(10px, 3vw, 14px);
-      border: 2px solid #ddd;
-      border-radius: var(--border-radius);
-      font-size: clamp(14px, 4vw, 16px);
-      transition: var(--transition);
-      background: white;
-    }
+        #btn-register.active {
+            background-color: var(--primary-color);
+            cursor: pointer;
+        }
 
-    .form-group input:focus,
-    .form-group select:focus {
-      outline: none;
-      border-color: var(--primary);
-      box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
-    }
+        /* Botón Panel Administrador (Azul con borde de guiones) */
+        .admin-panel {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            background-color: #2e9aff; /* Azul claro */
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            text-decoration: none;
+            text-align: center;
+            position: relative;
+            box-sizing: border-box;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
 
-    .btn {
-      width: 100%;
-      padding: clamp(12px, 3vw, 16px);
-      background: var(--primary);
-      color: white;
-      border: none;
-      border-radius: var(--border-radius);
-      font-size: clamp(14px, 4vw, 16px);
-      font-weight: 600;
-      cursor: pointer;
-      transition: var(--transition);
-      margin-bottom: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-    }
+        /* Borde de guiones punteados blanco alrededor del botón azul */
+        .admin-panel-container {
+            border: 2px dashed #a1c8ff;
+            border-radius: 12px;
+            padding: 5px;
+            background: transparent;
+        }
 
-    .btn:hover:not(:disabled) {
-      background: var(--primary-dark);
-      transform: translateY(-2px);
-      box-shadow: var(--shadow);
-    }
-
-    .btn:disabled {
-      background: #ccc;
-      cursor: not-allowed;
-      transform: none;
-      box-shadow: none;
-    }
-
-    .btn-secondary {
-      background: var(--secondary);
-    }
-
-    .btn-secondary:hover:not(:disabled) {
-      background: var(--secondary-dark);
-    }
-
-    .employee-info {
-      background: linear-gradient(45deg, #f8f9fa, #ffffff);
-      border: 2px solid var(--primary);
-      border-radius: var(--border-radius);
-      padding: 15px;
-      margin-bottom: 20px;
-      display: none;
-      box-shadow: 0 2px 10px rgba(76, 175, 80, 0.1);
-    }
-
-    .employee-info h3 {
-      color: var(--primary);
-      margin-bottom: 10px;
-      font-size: clamp(16px, 4vw, 18px);
-    }
-
-    .employee-info p {
-      margin: 5px 0;
-      color: #6c757d;
-      font-size: clamp(13px, 3vw, 14px);
-    }
-
-    .employee-info .highlight {
-      font-weight: 600;
-      color: #495057;
-    }
-
-    #respuesta {
-      margin-top: 20px;
-      padding: 15px;
-      border-radius: var(--border-radius);
-      text-align: center;
-      font-weight: 600;
-      display: none;
-      font-size: clamp(13px, 3.5vw, 15px);
-    }
-
-    .success {
-      background: var(--success);
-      color: var(--success-text);
-      border: 1px solid #c3e6cb;
-    }
-
-    .error {
-      background: var(--error);
-      color: var(--error-text);
-      border: 1px solid #f5c6cb;
-    }
-
-    .warning {
-      background: var(--warning);
-      color: var(--warning-text);
-      border: 1px solid #ffeaa7;
-    }
-
-    .loading {
-      display: inline-block;
-      width: 18px;
-      height: 18px;
-      border: 2px solid #f3f3f3;
-      border-top: 2px solid var(--primary);
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
-    }
-
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-
-    .qr-status {
-      text-align: center;
-      padding: 10px;
-      margin-bottom: 15px;
-      border-radius: var(--border-radius);
-      background: #e3f2fd;
-      color: #1565c0;
-      display: none;
-      font-size: clamp(12px, 3vw, 14px);
-    }
-
-    .admin-panel {
-      margin-top: 20px;
-      border: 2px dashed #cbd5e1;
-      border-radius: var(--border-radius);
-      padding: 12px;
-      background: #f8fafc;
-    }
-
-    .admin-panel h4 {
-      font-size: clamp(14px, 4vw, 16px);
-      margin-bottom: 10px;
-      color: #1f2937;
-    }
-
-    .admin-status {
-      display: none;
-      margin-top: 10px;
-      padding: 10px;
-      border-radius: var(--border-radius);
-      font-size: clamp(12px, 3vw, 14px);
-      text-align: center;
-    }
-
-    @media (max-width: 480px) {
-      body {
-        padding: 5px;
-      }
-      
-      .content {
-        padding: 15px;
-      }
-      
-      .toggle-wrapper {
-        justify-content: center;
-      }
-    }
-
-    @media (min-width: 768px) {
-      .container {
-        margin-top: 20px;
-      }
-    }
-
-    @media (orientation: landscape) and (max-height: 500px) {
-      .header {
-        padding: 10px;
-      }
-      
-      .content {
-        padding: 15px;
-      }
-      
-      .time-display {
-        margin-bottom: 10px;
-        padding: 10px;
-      }
-    }
-  </style>
+        /* Responsive */
+        @media (max-width: 480px) {
+            .container {
+                width: 95%;
+            }
+        }
+    </style>
 </head>
 <body>
-  <div class="container">
+
+<div class="container">
     <div class="header">
-      <h1>Aula PIP</h1>
-      <p>Escanea tu codigo QR o ingresa tu ID</p>
+        <h1>Aula PIP</h1>
+        <p>Escanea tu código QR o ingresa tu ID</p>
     </div>
-    
+
     <div class="content">
-      <div class="time-display" id="reloj-tiempo">Cargando...</div>
-      
-      <div class="camera-toggle">
-        <div class="toggle-wrapper">
-          <span>Camara:</span>
-          <label class="switch">
-            <input type="checkbox" id="camera-toggle" checked>
-            <span class="slider"></span>
-          </label>
-          <span id="camera-status">Activada</span>
+        <div class="camera-container" id="camera-frame">
+            <div id="status">Cargando...</div>
+            <div id="reader"></div>
         </div>
-      </div>
-      
-      <div class="qr-status" id="qr-status">Iniciando camara...</div>
-      
-      <div class="camera-controls" id="camera-controls">
-        <div class="camera-select">
-          <select id="camera-select">
-            <option value="">Seleccione una camara...</option>
-          </select>
-        </div>
-      </div>
-      
-      <div id="reader"></div>
-      
-      <button type="button" class="btn btn-secondary" id="reiniciar-btn" onclick="reiniciarQR()" style="display: none;">
-        Reiniciar Escaner
-      </button>
-      
-      <form id="formulario">
-        <div class="form-group">
-          <label for="id">ID del Estudiante:</label>
-          <input type="text" id="id" required placeholder="Ingrese su ID">
-        </div>
-        
-      <div class="employee-info" id="employee-info">
-          <h3>Informacion del Estudiante</h3>
-          <p><strong>Nombre:</strong> <span id="employee-name" class="highlight">-</span></p>
-          <p><strong>Grado/Seccion:</strong> <span id="employee-area" class="highlight">-</span></p>
-          <p><strong>Perfil:</strong> <span id="employee-position" class="highlight">-</span></p>
-        </div>
-        
-        <div class="form-group">
-          <label for="estado">Estado:</label>
-          <select id="estado" required>
-            <option value="INGRESO">INGRESO</option>
-            <option value="SALIDA">SALIDA</option>
-          </select>
-        </div>
-        
-        <button type="submit" class="btn" id="btn-submit" disabled>
-          Registrar Asistencia
-        </button>
-      </form>
-      
-      <div id="respuesta"></div>
 
-      <div class="admin-panel">
-        <button type="button" class="btn btn-secondary" id="admin-toggle">Panel Administrador</button>
-        <div id="admin-body" style="display: none;">
-          <h4>Generar Carnets</h4>
-          <div class="form-group">
-            <label for="admin-id">ID del Estudiante:</label>
-            <input type="text" id="admin-id" placeholder="Ingrese ID">
-          </div>
-          <button type="button" class="btn" id="admin-generar-id">Generar carnet PDF</button>
-          <div class="form-group">
-            <label for="admin-grado">Grado/Seccion:</label>
-            <select id="admin-grado">
-              <option value="">Seleccione...</option>
+        <div class="toggle-container">
+            <label>Camara:</label>
+            <label class="switch">
+                <input type="checkbox" id="camera-toggle" checked>
+                <span class="slider"></span>
+            </label>
+            <label style="color: var(--primary-color); font-weight: bold;">Activada</label>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label" for="student-id">ID del Estudiante:</label>
+            <input type="text" id="student-id" class="form-control" placeholder="Ingrese su ID">
+        </div>
+
+        <div class="form-group">
+            <label class="form-label" for="status-select">Estado:</label>
+            <select id="status-select" class="form-control">
+                <option value="ENTRADA">INGRESO</option>
+                <option value="SALIDA">SALIDA</option>
             </select>
-          </div>
-          <button type="button" class="btn" id="admin-generar-lote">Generar lote PDF</button>
-          <div id="admin-status" class="admin-status"></div>
         </div>
-      </div>
+
+        <button id="btn-register" disabled>Registrar Asistencia</button>
+
+        <div class="admin-panel-container">
+            <a href="#" class="admin-panel">Panel Administrador</a>
+        </div>
     </div>
-  </div>
+</div>
 
-  <script>
-    let qrCodeReader = null;
-    let isScanning = false;
-    let searchTimeout = null;
-    let studentData = null;
-    let selectedCameraId = null;
-    let ultimoRegistro = {};
-    let cameraEnabled = true;
-    let serverEpochMs = null;
-    let perfStartMs = null;
+<script>
+    // --- CONFIGURACIÓN ---
+    // !!! REEMPLAZA ESTA URL CON LA DE TU GOOGLE APPS SCRIPT (NUEVA VERSIÓN) !!!
+    const scriptURL = 'TU_NUEVA_URL_DE_APPS_SCRIPT_AQUI'; 
 
-    function obtenerAhoraServidorMs() {
-      if (serverEpochMs === null || perfStartMs === null || !window.performance) {
-        return Date.now();
-      }
-      return serverEpochMs + (performance.now() - perfStartMs);
-    }
-    
-    function actualizarReloj() {
-      const ahora = new Date(obtenerAhoraServidorMs());
-      const hora = ahora.toLocaleTimeString('es-PE', {
-        hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false, timeZone: 'America/Lima'
-      });
-      const fecha = ahora.toLocaleDateString('es-PE', {
-        weekday: 'short', day: 'numeric', month: 'short', timeZone: 'America/Lima'
-      });
-      
-      document.getElementById('reloj-tiempo').innerHTML = `${hora}<br><small>${fecha}</small>`;
-    }
+    const html5QrCode = new Html5Qrcode("reader");
+    const config = { fps: 10, qrbox: { width: 250, height: 250 } };
 
-    function sincronizarHoraPeru() {
-      google.script.run
-        .withSuccessHandler(function(resultado) {
-          if (resultado && typeof resultado.timestamp === 'number') {
-            serverEpochMs = resultado.timestamp;
-            perfStartMs = performance.now();
-            actualizarReloj();
-          }
-        })
-        .obtenerHoraPeru();
-    }
-    
-    function esMobile() {
-      return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-    }
-    
-    function actualizarEstadoQR(mensaje, esError = false) {
-      const statusEl = document.getElementById('qr-status');
-      statusEl.textContent = mensaje;
-      statusEl.style.background = esError ? '#ffebee' : '#e3f2fd';
-      statusEl.style.color = esError ? '#c62828' : '#1565c0';
-      statusEl.style.display = 'block';
-    }
-    
-    function toggleCamera(enabled) {
-      cameraEnabled = enabled;
-      const statusSpan = document.getElementById('camera-status');
-      const elements = ['reader', 'qr-status', 'reiniciar-btn', 'camera-controls'];
-      
-      if (enabled) {
-        statusSpan.textContent = 'Activada';
-        statusSpan.style.color = 'var(--primary)';
-        elements.slice(0, 2).forEach(id => document.getElementById(id).style.display = 'block');
-        document.getElementById('reiniciar-btn').style.display = 'block';
-        cargarCamaras();
-      } else {
-        statusSpan.textContent = 'Desactivada';
-        statusSpan.style.color = '#999';
-        detenerEscaneo();
-        elements.forEach(id => document.getElementById(id).style.display = 'none');
-      }
-    }
-    
-    function detenerEscaneo() {
-      if (qrCodeReader && isScanning) {
-        qrCodeReader.stop().then(() => {
-          qrCodeReader = null;
-          isScanning = false;
-        }).catch(err => console.error('Error stopping scanner:', err));
-      }
-    }
-    
-    function cargarCamaras() {
-      if (!cameraEnabled) return;
-      
-      Html5Qrcode.getCameras()
-        .then(devices => {
-          if (esMobile() && devices.length > 1) {
-            mostrarSelectorCamara(devices);
-          } else if (devices.length > 0) {
-            selectedCameraId = devices.find(d => 
-              d.label.toLowerCase().includes('back') || 
-              d.label.toLowerCase().includes('rear')
-            )?.id || devices[0].id;
-            iniciarEscaneo();
-          }
-        })
-        .catch(err => {
-          console.error("Error getting cameras:", err);
-          actualizarEstadoQR("Error al detectar camaras", true);
+    // Elementos DOM
+    const cameraToggle = document.getElementById('camera-toggle');
+    const readerDiv = document.getElementById('reader');
+    const statusText = document.getElementById('status');
+    const cameraFrame = document.getElementById('camera-frame');
+    const studentIdInput = document.getElementById('student-id');
+    const registerBtn = document.getElementById('btn-register');
+    const statusSelect = document.getElementById('status-select');
+
+    let cameraActive = false;
+
+    // --- FUNCIONES ---
+
+    // Manejar el toggle de la cámara
+    cameraToggle.addEventListener('change', function() {
+        if (this.checked) {
+            iniciarCamara();
+        } else {
+            detenerCamara();
+        }
+    });
+
+    // Validar si activar el botón de registrar
+    studentIdInput.addEventListener('input', function() {
+        if (this.value.trim().length > 0) {
+            registerBtn.disabled = false;
+            registerBtn.classList.add('active');
+        } else {
+            registerBtn.disabled = true;
+            registerBtn.classList.remove('active');
+        }
+    });
+
+    // Manejar clic en botón Registrar (entrada manual)
+    registerBtn.addEventListener('click', function() {
+        enviarAsistencia(studentIdInput.value, statusSelect.value);
+    });
+
+    // Iniciar cámara trasera automáticamente
+    function iniciarCamara() {
+        statusText.innerText = "Iniciando cámara trasera...";
+        readerDiv.style.display = 'block';
+        statusText.style.display = 'none'; // Ocultar texto al iniciar video
+
+        html5QrCode.start(
+            { facingMode: "environment" }, config, onScanSuccess
+        ).catch(err => {
+            detenerCamara();
+            statusText.style.display = 'block';
+            statusText.innerText = "Error: No se pudo acceder a la cámara.";
+            statusText.className = "error-text";
+            cameraFrame.style.backgroundColor = '#fee2e2'; // Rojo claro de error
+            cameraFrame.style.borderColor = '#fca5a5';
+            console.error(err);
         });
     }
-    
-    function mostrarSelectorCamara(devices) {
-      const controlsDiv = document.getElementById('camera-controls');
-      const select = document.getElementById('camera-select');
-      
-      select.innerHTML = '<option value="">Seleccione una camara...</option>';
-      
-      devices.forEach((device, index) => {
-        const option = document.createElement('option');
-        option.value = device.id;
-        
-        let tipo = 'Camara ' + (index + 1);
-        if (device.label.toLowerCase().includes('back') || device.label.toLowerCase().includes('rear')) {
-          tipo = 'Camara Trasera';
-        } else if (device.label.toLowerCase().includes('front') || device.label.toLowerCase().includes('user')) {
-          tipo = 'Camara Frontal';
-        }
-        
-        option.textContent = tipo;
-        select.appendChild(option);
-      });
-      
-      controlsDiv.style.display = 'block';
-      
-      select.addEventListener('change', function() {
-        if (this.value) {
-          selectedCameraId = this.value;
-          if (isScanning) {
-            reiniciarQR();
-          } else {
-            iniciarEscaneo();
-          }
-        }
-      });
-      
-      const rearCamera = devices.find(d => 
-        d.label.toLowerCase().includes('back') || 
-        d.label.toLowerCase().includes('rear')
-      );
-      if (rearCamera) {
-        select.value = rearCamera.id;
-        selectedCameraId = rearCamera.id;
-        iniciarEscaneo();
-      }
-    }
-    
-    function iniciarEscaneo() {
-      if (isScanning || !selectedCameraId || !cameraEnabled) return;
-      
-      const readerId = "reader";
-      qrCodeReader = new Html5Qrcode(readerId);
-      
-      actualizarEstadoQR("Iniciando camara...");
-      
-      const config = { 
-        fps: 10, 
-        qrbox: { 
-          width: Math.min(250, window.innerWidth * 0.7), 
-          height: Math.min(250, window.innerWidth * 0.7) 
-        }, 
-        aspectRatio: 1.0 
-      };
-      
-      qrCodeReader.start(
-        selectedCameraId,
-        config,
-        (decodedText) => {
-          actualizarEstadoQR("QR detectado correctamente");
-          procesarQR(decodedText);
-        },
-        () => {}
-      ).then(() => {
-        isScanning = true;
-        actualizarEstadoQR("Escaneando... Acerca el codigo QR");
-      }).catch(err => {
-        actualizarEstadoQR("Error al acceder a la camara", true);
-        console.error("Error starting QR scanner:", err);
-      });
-    }
-    
-    function reiniciarQR() {
-      detenerEscaneo();
-      
-      if (selectedCameraId && cameraEnabled) {
-        setTimeout(iniciarEscaneo, 500);
-      } else if (cameraEnabled) {
-        setTimeout(cargarCamaras, 500);
-      }
-    }
-    
-    function procesarQR(textoQR) {
-      const idEstudiante = textoQR.trim();
-      document.getElementById("id").value = idEstudiante;
-      buscarEstudiante(idEstudiante);
-      mostrarRespuesta("ID cargado desde QR", "success");
-    }
-    
-    function buscarEstudiante(id) {
-      if (!id.trim()) {
-        ocultarInfoEstudiante();
-        return;
-      }
-      
-      mostrarBusqueda();
-      
-      google.script.run
-        .withSuccessHandler(function(resultado) {
-          if (resultado.encontrado) {
-            studentData = resultado.datos;
-            mostrarInfoEstudiante(resultado.datos);
-            habilitarBotonRegistro();
-          } else {
-            ocultarInfoEstudiante();
-            mostrarRespuesta(resultado.mensaje, "warning");
-            deshabilitarBotonRegistro();
-          }
-        })
-        .withFailureHandler(function() {
-          ocultarInfoEstudiante();
-          mostrarRespuesta("Error al buscar estudiante", "error");
-          deshabilitarBotonRegistro();
-        })
-        .buscarEstudiante(id);
-    }
-    
-    function mostrarBusqueda() {
-      const infoDiv = document.getElementById('employee-info');
-      infoDiv.style.display = 'block';
-      document.getElementById('employee-name').innerHTML = '<div class="loading"></div> Buscando...';
-    }
-    
-    function mostrarInfoEstudiante(datos) {
-      const infoDiv = document.getElementById('employee-info');
-      infoDiv.style.display = 'block';
-      document.getElementById('employee-name').textContent = datos.nombre;
-      document.getElementById('employee-area').textContent = datos.area;
-      document.getElementById('employee-position').textContent = datos.cargo;
-    }
-    
-    function ocultarInfoEstudiante() {
-      document.getElementById('employee-info').style.display = 'none';
-      studentData = null;
-    }
-    
-    function habilitarBotonRegistro() {
-      document.getElementById('btn-submit').disabled = false;
-    }
-    
-    function deshabilitarBotonRegistro() {
-      document.getElementById('btn-submit').disabled = true;
-    }
-    
-    function mostrarRespuesta(mensaje, tipo) {
-      const respuesta = document.getElementById("respuesta");
-      respuesta.textContent = mensaje;
-      respuesta.className = tipo;
-      respuesta.style.display = "block";
-      
-      if (tipo === "success") {
-        setTimeout(() => {
-          respuesta.style.display = "none";
-        }, 5000);
-      }
+
+    // Detener cámara
+    function detenerCamara() {
+        html5QrCode.stop().then(() => {
+            readerDiv.style.display = 'none';
+            statusText.style.display = 'block';
+            statusText.innerText = "Cámara desactivada";
+            statusText.style.color = '#555';
+            cameraFrame.style.backgroundColor = '#f8f9fa';
+            cameraFrame.style.borderColor = '#ccc';
+        }).catch(err => console.error(err));
     }
 
-    function mostrarAdminEstado(mensaje, esError) {
-      const status = document.getElementById('admin-status');
-      status.textContent = mensaje;
-      status.style.display = 'block';
-      status.style.background = esError ? '#fee2e2' : '#dcfce7';
-      status.style.color = esError ? '#b91c1c' : '#166534';
+    // Al escanear QR con éxito
+    function onScanSuccess(decodedText) {
+        // Obtenemos el tipo de estado seleccionado en el menú desplegable
+        const tipoEstado = statusSelect.value; 
+
+        // Pausamos el escáner y mostramos feedback visual
+        html5QrCode.stop().then(() => {
+            statusText.style.display = 'block';
+            statusText.innerText = `QR Escaneado: ${decodedText}... Procesando ${tipoEstado}`;
+            cameraFrame.style.backgroundColor = '#f0fdf4';
+            readerDiv.style.display = 'none';
+
+            // Enviamos el ID escaneado Y el estado seleccionado al Google Script
+            enviarAsistencia(decodedText, tipoEstado);
+        });
     }
 
-    function descargarArchivo(base64, filename, mimeType) {
-      const enlace = document.createElement('a');
-      enlace.href = 'data:' + mimeType + ';base64,' + base64;
-      enlace.download = filename;
-      document.body.appendChild(enlace);
-      enlace.click();
-      document.body.removeChild(enlace);
+    // Función principal para enviar datos al Google Script
+    function enviarAsistencia(idEstudiante, tipoRegistro) {
+        statusText.style.display = 'block';
+        statusText.innerText = "Enviando registro al servidor...";
+        registerBtn.disabled = true; // Desactivar botón durante el envío
+
+        fetch(scriptURL, {
+            method: 'POST',
+            body: JSON.stringify({ id: idEstudiante, estado: tipoRegistro }) // Ahora enviamos ambos datos
+        })
+        .then(response => response.text())
+        .then(mensajeServidor => {
+            // El servidor nos devuelve el mensaje de éxito/error (ej: Bienvenido Juan)
+            statusText.innerText = mensajeServidor;
+            cameraFrame.style.backgroundColor = mensajeServidor.includes("Error") ? '#fee2e2' : '#d1fae5';
+
+            // Reiniciar campos después de 3 segundos
+            setTimeout(() => {
+                location.reload(); // Recarga simple para limpiar estado
+            }, 3000);
+        })
+        .catch(error => {
+            statusText.innerText = "Error crítico de conexión";
+            console.error('Error:', error);
+            registerBtn.disabled = false;
+        });
     }
 
-    function cargarGradosSecciones() {
-      google.script.run
-        .withSuccessHandler(function(resultado) {
-          const select = document.getElementById('admin-grado');
-          if (!resultado || resultado.error) {
-            mostrarAdminEstado('No se pudo cargar grados/seccion', true);
-            return;
-          }
-          const grados = resultado.grados || [];
-          select.innerHTML = '<option value="">Seleccione...</option>';
-          grados.forEach(g => {
-            const option = document.createElement('option');
-            option.value = g;
-            option.textContent = g;
-            select.appendChild(option);
-          });
-        })
-        .listarGradosSecciones();
-    }
-    
-    function enviarFormulario(event) {
-      event.preventDefault();
-      
-      const id = document.getElementById("id").value.trim();
-      const estado = document.getElementById("estado").value;
-      
-      if (!id || !studentData) {
-        mostrarRespuesta("Por favor ingrese un ID valido", "error");
-        return;
-      }
-      
-      const btnSubmit = document.getElementById("btn-submit");
-      btnSubmit.innerHTML = '<div class="loading"></div> Registrando...';
-      btnSubmit.disabled = true;
-      
-      const data = { 
-        id: id,
-        nombre: studentData.nombre,
-        area: studentData.area,
-        cargo: studentData.cargo,
-        telefono: studentData.telefono || '',
-        estado: estado 
-      };
-      
-      google.script.run
-        .withSuccessHandler(function(resultado) {
-          btnSubmit.innerHTML = 'Registrar Asistencia';
-          
-          if (resultado.exito) {
-            const mensaje = `${estado} registrado para ${studentData.nombre} a las ${resultado.hora}`;
-            mostrarRespuesta(mensaje, "success");
-            
-            document.getElementById("formulario").reset();
-            document.getElementById("estado").value = "INGRESO";
-            ocultarInfoEstudiante();
-            deshabilitarBotonRegistro();
-            
-          } else {
-            mostrarRespuesta(resultado.mensaje, "warning");
-            habilitarBotonRegistro();
-          }
-        })
-        .withFailureHandler(function() {
-          btnSubmit.innerHTML = 'Registrar Asistencia';
-          habilitarBotonRegistro();
-          mostrarRespuesta("Error de conexion", "error");
-        })
-        .registrarAsistencia(data);
-    }
-    
-    document.getElementById("formulario").addEventListener("submit", enviarFormulario);
-    
-    document.getElementById("id").addEventListener("input", function(e) {
-      const id = e.target.value.trim();
-      
-      if (searchTimeout) clearTimeout(searchTimeout);
-      
-      if (id.length > 0) {
-        ocultarInfoEstudiante();
-        deshabilitarBotonRegistro();
-        searchTimeout = setTimeout(() => buscarEstudiante(id), 1500);
-      }
-    });
-    
-    document.getElementById("camera-toggle").addEventListener("change", function(e) {
-      toggleCamera(e.target.checked);
-    });
+    // Iniciar automáticamente al cargar
+    window.addEventListener('DOMContentLoaded', iniciarCamara);
 
-    document.getElementById('admin-toggle').addEventListener('click', function() {
-      const body = document.getElementById('admin-body');
-      body.style.display = body.style.display === 'none' ? 'block' : 'none';
-    });
+</script>
 
-    document.getElementById('admin-generar-id').addEventListener('click', function() {
-      const id = document.getElementById('admin-id').value.trim();
-      if (!id) {
-        mostrarAdminEstado('Ingrese un ID valido', true);
-        return;
-      }
-      mostrarAdminEstado('Generando PDF...', false);
-      google.script.run
-        .withSuccessHandler(function(resultado) {
-          if (!resultado || !resultado.ok) {
-            mostrarAdminEstado((resultado && resultado.mensaje) || 'Error al generar PDF', true);
-            return;
-          }
-          descargarArchivo(resultado.data, resultado.filename, 'application/pdf');
-          mostrarAdminEstado('PDF generado correctamente', false);
-        })
-        .withFailureHandler(function() {
-          mostrarAdminEstado('Error de conexion', true);
-        })
-        .generarCarnetPdfPorId(id);
-    });
-
-    document.getElementById('admin-generar-lote').addEventListener('click', function() {
-      const grado = document.getElementById('admin-grado').value;
-      if (!grado) {
-        mostrarAdminEstado('Seleccione un grado/seccion', true);
-        return;
-      }
-      mostrarAdminEstado('Generando lote...', false);
-      google.script.run
-        .withSuccessHandler(function(resultado) {
-          if (!resultado || !resultado.ok) {
-            mostrarAdminEstado((resultado && resultado.mensaje) || 'Error al generar lote', true);
-            return;
-          }
-          descargarArchivo(resultado.data, resultado.filename, 'application/zip');
-          mostrarAdminEstado('Lote generado correctamente', false);
-        })
-        .withFailureHandler(function() {
-          mostrarAdminEstado('Error de conexion', true);
-        })
-        .generarCarnetsPdfPorGrado(grado);
-    });
-    
-    window.addEventListener('load', function() {
-      sincronizarHoraPeru();
-      setInterval(actualizarReloj, 1000);
-      setInterval(sincronizarHoraPeru, 60000);
-      cargarGradosSecciones();
-      setTimeout(() => {
-        if (cameraEnabled) {
-          cargarCamaras();
-        }
-      }, 1000);
-    });
-    
-    window.addEventListener('beforeunload', function() {
-      detenerEscaneo();
-    });
-    
-    window.addEventListener('resize', function() {
-      if (isScanning) {
-        reiniciarQR();
-      }
-    });
-    
-    window.addEventListener('orientationchange', function() {
-      setTimeout(() => {
-        if (isScanning) {
-          reiniciarQR();
-        }
-      }, 500);
-    });
-  </script>
 </body>
 </html>

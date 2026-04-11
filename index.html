@@ -185,7 +185,7 @@
         <div id="impresion" class="section">
             <div class="form-group">
                 <label>ID Imagen de Fondo (Google Drive):</label>
-                <input type="text" id="bg-id" class="form-control" placeholder="Pegue el ID de la imagen aquí">
+                <input type="text" id="bg-id" class="form-control" placeholder="ID de la imagen prediseñada">
             </div>
             <div class="form-group">
                 <label>Opción de Impresión:</label>
@@ -197,8 +197,8 @@
             </div>
 
             <div id="field-dni" class="form-group">
-                <label>Ingrese DNI:</label>
-                <input type="number" id="print-dni" class="form-control">
+                <label>Ingrese DNI del Estudiante:</label>
+                <input type="number" id="print-dni" class="form-control" placeholder="Ej: 71234567">
             </div>
 
             <div id="field-seccion" class="form-group" style="display:none; gap:10px;">
@@ -216,13 +216,13 @@
                 </div>
             </div>
 
-            <button class="btn-main btn-dark" onclick="generarPDF()">Generar PDF (8 por hoja)</button>
+            <button class="btn-main btn-dark" onclick="generarPDF()">Generar PDF (8 carnets por hoja)</button>
+            <p style="font-size: 11px; text-align: center; color: #666; margin-top: 10px;">Tamaño: 5.5cm x 8.5cm. QR automático basado en DNI.</p>
         </div>
     </div>
 
 <script>
-    // --- REEMPLAZA ESTA URL CON TU GOOGLE APPS SCRIPT ---
-    const scriptURL = 'https://script.google.com/macros/s/AKfycbyJFxt2Nsd1LjfTUdMuwP8UR9KRJCs3CMnCvnFOF1qdCs09DhnlaAKg8TNhwt5a2ei0QA/exec'; 
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbywaAJ794WPQwZe3CIO7A08bI-a1Yxhq5slnj4f6aKu93UKvjDjfQe1q2yyrl5hCdS_TA/exec'; 
 
     const html5QrCode = new Html5Qrcode("reader");
 

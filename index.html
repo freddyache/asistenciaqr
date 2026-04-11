@@ -3,46 +3,71 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Scanner Asistencia</title>
+    <title>Scanner Asistencia Pro</title>
     <script src="https://unpkg.com/html5-qrcode"></script>
     <style>
-        body { font-family: sans-serif; text-align: center; padding: 20px; }
-        #reader { width: 100%; max-width: 500px; margin: auto; }
-        #status { margin-top: 20px; font-weight: bold; color: blue; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; text-align: center; background-color: #f4f4f9; margin: 0; padding: 20px; }
+        #reader { width: 100%; max-width: 400px; margin: 20px auto; border-radius: 15px; overflow: hidden; border: 2px solid #333; }
+        #status { padding: 15px; margin-top: 20px; font-weight: bold; border-radius: 8px; display: inline-block; }
+        .loading { color: #555; background: #e2e2e2; }
+        .success { color: #fff; background: #28a745; }
+        .error { color: #fff; background: #dc3545; }
     </style>
 </head>
 <body>
-    <h1>Escaneo de Asistencia</h1>
+    <h2>Control de Asistencia</h2>
     <div id="reader"></div>
-    <div id="status">Esperando escaneo...</div>
+    <div id="status" class="loading">Iniciando cámara trasera...</div>
 
     <script>
-        const scriptURL = 'TU_URL_DE_APPS_SCRIPT';
+        const scriptURL = 'TU_URL_DE_APPS_SCRIPT'; // <--- PEGA TU URL AQUÍ
+        const html5QrCode = new Html5Qrcode("reader");
+        
+        const config = { 
+            fps: 10, 
+            qrbox: { width: 250, height: 250 } 
+        };
+
+        // Iniciar la cámara automáticamente al cargar la página
+        window.addEventListener('DOMContentLoaded', (event) => {
+            // "environment" le dice al celular que use la cámara trasera
+            html5QrCode.start(
+                { facingMode: "environment" }, 
+                config, 
+                onScanSuccess
+            ).catch(err => {
+                document.getElementById('status').innerText = "Error: No se pudo acceder a la cámara trasera.";
+                document.getElementById('status').className = "error";
+                console.error(err);
+            });
+        });
 
         function onScanSuccess(decodedText) {
-            document.getElementById('status').innerText = "Procesando registro...";
-            
-            // Pausar escáner para evitar duplicados
-            html5QrcodeScanner.clear();
+            // Detener el escaneo para evitar múltiples lecturas
+            html5QrCode.stop().then(() => {
+                const statusDiv = document.getElementById('status');
+                statusDiv.innerText = "Enviando registro...";
+                statusDiv.className = "loading";
 
-            fetch(scriptURL, {
-                method: 'POST',
-                body: JSON.stringify({ id: decodedText })
-            })
-            .then(response => response.text())
-            .then(result => {
-                document.getElementById('status').innerText = result;
-                // Reiniciar escáner después de 3 segundos
-                setTimeout(() => location.reload(), 3000);
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                document.getElementById('status').innerText = "Error en el servidor";
+                fetch(scriptURL, {
+                    method: 'POST',
+                    mode: 'no-cors', // Importante para Apps Script
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id: decodedText })
+                })
+                .then(() => {
+                    statusDiv.innerText = "¡Registro Procesado con Éxito!";
+                    statusDiv.className = "success";
+                    // Reiniciar después de 3 segundos
+                    setTimeout(() => location.reload(), 3000);
+                })
+                .catch(error => {
+                    statusDiv.innerText = "Error en el servidor";
+                    statusDiv.className = "error";
+                    console.error('Error:', error);
+                });
             });
         }
-
-        let html5QrcodeScanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: 250 });
-        html5QrcodeScanner.render(onScanSuccess);
     </script>
 </body>
 </html>

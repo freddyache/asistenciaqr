@@ -123,6 +123,31 @@
             }
         });
     }
+
+<script>
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbwORhsNxqXktlSlYH6d3cCekexEHgQYd8HLwcUYB_rQWsdplbBjTaTXntU4HOGLBjlkUA/exec';
+
+    function generarPDF() {
+        const datos = {
+            action: 'imprimir',
+            tipo: document.getElementById('p-tipo').value,
+            dni: document.getElementById('p-dni').value,
+            gradoSeccion: document.getElementById('p-grado').value + document.getElementById('p-seccion').value
+        };
+
+        alert("Generando PDF... por favor espere.");
+
+        fetch(scriptURL, { method: 'POST', body: JSON.stringify(datos) })
+        .then(r => r.text()).then(url => {
+            if(url.includes("http")) {
+                // Esto abre el PDF en una pestaña nueva
+                const win = window.open(url, '_blank');
+                if(!win) alert("Por favor, permite las ventanas emergentes (pop-ups) en este sitio.");
+            } else {
+                alert("Error: " + url);
+            }
+        });
+    }
 </script>
 
 <script>

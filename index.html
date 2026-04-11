@@ -183,57 +183,46 @@
         </div>
 
         <div id="impresion" class="section">
-    <div class="form-group">
-        <label>Opción de Impresión:</label>
-        <select id="print-type" class="form-control" onchange="togglePrintFields()">
-            <option value="individual">Por Alumno (DNI)</option>
-            <option value="seccion">Por Sección Completa</option>
-            <option value="todos">Todos los Alumnos</option>
-        </select>
-    </div>
+            <div class="form-group">
+                <label>ID Imagen de Fondo (Google Drive):</label>
+                <input type="text" id="bg-id" class="form-control" placeholder="Pegue el ID de la imagen aquí">
+            </div>
+            <div class="form-group">
+                <label>Opción de Impresión:</label>
+                <select id="print-type" class="form-control" onchange="togglePrintFields()">
+                    <option value="individual">Por Alumno (DNI)</option>
+                    <option value="seccion">Por Sección Completa</option>
+                    <option value="todos">Todos los Alumnos</option>
+                </select>
+            </div>
 
-    <div id="field-dni" class="form-group">
-        <label>Ingrese DNI del Estudiante:</label>
-        <input type="number" id="print-dni" class="form-control" placeholder="Ej: 71234567">
-    </div>
+            <div id="field-dni" class="form-group">
+                <label>Ingrese DNI:</label>
+                <input type="number" id="print-dni" class="form-control">
+            </div>
 
-    <div id="field-seccion" class="form-group" style="display:none; gap:10px;">
-        <div style="flex:1">
-            <label>Grado:</label>
-            <select id="print-grado" class="form-control">
-                <option value="1">1°</option><option value="2">2°</option><option value="3">3°</option><option value="4">4°</option><option value="5">5°</option>
-            </select>
+            <div id="field-seccion" class="form-group" style="display:none; gap:10px;">
+                <div style="flex:1">
+                    <label>Grado:</label>
+                    <select id="print-grado" class="form-control">
+                        <option value="1">1°</option><option value="2">2°</option><option value="3">3°</option><option value="4">4°</option><option value="5">5°</option>
+                    </select>
+                </div>
+                <div style="flex:1">
+                    <label>Sección:</label>
+                    <select id="print-seccion" class="form-control">
+                        <option value="A">A</option><option value="B">B</option>
+                    </select>
+                </div>
+            </div>
+
+            <button class="btn-main btn-dark" onclick="generarPDF()">Generar PDF (8 por hoja)</button>
         </div>
-        <div style="flex:1">
-            <label>Sección:</label>
-            <select id="print-seccion" class="form-control">
-                <option value="A">A</option><option value="B">B</option>
-            </select>
-        </div>
     </div>
-
-    <button class="btn-main btn-dark" onclick="generarPDF()">Generar PDF (8 carnets por hoja)</button>
-</div>
 
 <script>
-    // --- FUNCIÓN CORREGIDA SIN PEDIR ID ---
-    function generarPDF() {
-        const datos = {
-            action: 'imprimir',
-            tipo: document.getElementById('print-type').value,
-            dni: document.getElementById('print-dni').value,
-            gradoSeccion: document.getElementById('print-grado').value + document.getElementById('print-seccion').value
-        };
-
-        alert("Generando PDF... por favor espere.");
-
-        fetch(scriptURL, { method: 'POST', body: JSON.stringify(datos) })
-        .then(r => r.text()).then(url => {
-            if(url.includes("http")) window.open(url, '_blank'); else alert(url);
-        });
-    }
-<script>
-    const scriptURL = 'https://script.google.com/macros/s/AKfycbxTvz13cnYixwa4CA7MC6pY6-UwAodSG6qx54tDt_bDn1JQFi0UhGogzJ3eWi5kgqQVLw/exec'; 
+    // --- REEMPLAZA ESTA URL CON TU GOOGLE APPS SCRIPT ---
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbyJFxt2Nsd1LjfTUdMuwP8UR9KRJCs3CMnCvnFOF1qdCs09DhnlaAKg8TNhwt5a2ei0QA/exec'; 
 
     const html5QrCode = new Html5Qrcode("reader");
 
@@ -290,42 +279,30 @@
 
     // --- ACCIÓN: IMPRESIÓN ---
     function generarPDF() {
-    // Ya no se valida bgId porque está fijo en el script del servidor
-    const datos = {
-        action: 'imprimir',
-        tipo: document.getElementById('print-type').value, 
-        dni: document.getElementById('print-dni').value, 
-        gradoSeccion: document.getElementById('print-grado').value + document.getElementById('print-seccion').value 
-    };
+        const bgId = document.getElementById('bg-id').value;
+        if(!bgId) return alert("Ingrese el ID de la imagen de fondo de Drive");
 
-    alert("Generando PDF... por favor espere."); 
+        const datos = {
+            action: 'imprimir',
+            bgId: bgId,
+            tipo: document.getElementById('print-type').value,
+            dni: document.getElementById('print-dni').value,
+            gradoSeccion: document.getElementById('print-grado').value + document.getElementById('print-seccion').value
+        };
 
-    fetch(scriptURL, { method: 'POST', body: JSON.stringify(datos) }) 
-    .then(r => r.text()).then(url => {
-        if(url.includes("http")) window.open(url, '_blank'); else alert(url); 
-    });
-}
+        alert("Generando PDF... por favor espere a que abra la nueva pestaña.");
+
+        fetch(scriptURL, { method: 'POST', body: JSON.stringify(datos) })
+        .then(r => r.text()).then(url => {
+            if(url.includes("http")) window.open(url, '_blank'); else alert(url);
+        });
+    }
 
     function iniciarCamara() {
-    // Agregamos una configuración más robusta para móviles
-    const config = { 
-        fps: 10, 
-        qrbox: { width: 250, height: 250 },
-        aspectRatio: 1.0 
-    };
-
-    html5QrCode.start(
-        { facingMode: "environment" }, 
-        config, 
-        onScanSuccess
-    ).then(() => {
-        document.getElementById('status-msg').style.display = 'none';
-    }).catch(err => {
-        console.error("Error de cámara:", err);
-        document.getElementById('status-msg').innerHTML = 
-            "<b style='color:red;'>Error:</b> No se pudo acceder a la cámara. <br>1. Asegúrate de usar HTTPS. <br>2. Dale permisos de cámara al navegador.";
-    });
-}
+        html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, onScanSuccess)
+        .then(() => document.getElementById('status-msg').style.display = 'none')
+        .catch(() => document.getElementById('status-msg').innerText = "Error: Cámara no detectada.");
+    }
 
     function detenerCamara() { if(html5QrCode.isScanning) html5QrCode.stop(); }
 

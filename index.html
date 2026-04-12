@@ -218,7 +218,7 @@
 
 <script>
     // --- URL DE TU GOOGLE APPS SCRIPT ---
-    const scriptURL = 'https://script.google.com/macros/s/AKfycbxnO810DDwZoSbTpdKydkgf6K2Z1dldSVew7pod46xlZm_5vvLwJqWRNiYBq0vlwI_a5Q/exec'; 
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbw9hw0hSquVQUZxcxUc5vxAgpkvOCsULCAuU-nvqRkdogdna5WgQzAzR0IGsajUwJLthA/exec'; 
 
     const html5QrCode = new Html5Qrcode("reader");
 
@@ -309,19 +309,27 @@
             gradoSeccion: document.getElementById('print-grado').value + document.getElementById('print-seccion').value
         };
 
-        alert("Generando PDF... por favor espere.");
+        alert("Generando PDF... por favor espere a que se abra el archivo.");
 
         fetch(scriptURL, { method: 'POST', body: JSON.stringify(datos) })
         .then(r => r.text()).then(url => {
             if(url.includes("http")) {
+                // Intentar abrir. Si falla, mostrar el link para clic manual
                 const win = window.open(url, '_blank');
-                if(!win) alert("Por favor permita las ventanas emergentes para ver el PDF.");
+                if (!win || win.closed || typeof win.closed == 'undefined') {
+                    alert("El navegador bloqueó la ventana. Haga clic aquí para ver el PDF: " + url);
+                    // Opcional: Crear un enlace temporal para que el usuario haga clic
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.target = '_blank';
+                    a.innerText = "CLIC AQUÍ PARA DESCARGAR CARNETS";
+                    document.getElementById('impresion').appendChild(a);
+                }
             } else {
-                alert(url);
+                alert("Error: " + url);
             }
-        });
+        }).catch(err => alert("Error de conexión con el script."));
     }
-
     function iniciarCamara() {
         html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, onScanSuccess)
         .then(() => document.getElementById('status-msg').style.display = 'none')

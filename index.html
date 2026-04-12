@@ -184,41 +184,41 @@
 
         <div id="impresion" class="section">
             <div class="form-group">
-                <label>Opción de Impresión:</label>
-                <select id="print-type" class="form-control" onchange="togglePrintFields()">
-                    <option value="individual">Por Alumno (DNI)</option>
-                    <option value="seccion">Por Sección Completa</option>
-                    <option value="todos">Todos los Alumnos</option>
+                <label>Modo de Generación:</label>
+                <select id="p-tipo" class="form-control" onchange="togglePrintFields()">
+                    <option value="individual">DNI Específico</option>
+                    <option value="seccion">Sección Completa</option>
+                    <option value="todos">Toda la Institución</option>
                 </select>
             </div>
 
             <div id="field-dni" class="form-group">
                 <label>Ingrese DNI:</label>
-                <input type="number" id="print-dni" class="form-control">
+                <input type="number" id="p-dni" class="form-control" placeholder="Ej: 71234567">
             </div>
 
             <div id="field-seccion" class="form-group" style="display:none; gap:10px;">
                 <div style="flex:1">
                     <label>Grado:</label>
-                    <select id="print-grado" class="form-control">
+                    <select id="p-grado" class="form-control">
                         <option value="1">1°</option><option value="2">2°</option><option value="3">3°</option><option value="4">4°</option><option value="5">5°</option>
                     </select>
                 </div>
                 <div style="flex:1">
                     <label>Sección:</label>
-                    <select id="print-seccion" class="form-control">
+                    <select id="p-seccion" class="form-control">
                         <option value="A">A</option><option value="B">B</option>
                     </select>
                 </div>
             </div>
 
-            <button class="btn-main btn-dark" onclick="generarPDF()">Generar PDF (8 por hoja)</button>
+            <button class="btn-main btn-dark" onclick="generarPDF()">Generar PDF (9 por hoja)</button>
         </div>
     </div>
 
 <script>
     // --- URL DE TU GOOGLE APPS SCRIPT ---
-    const scriptURL = 'https://script.google.com/macros/s/AKfycbw9hw0hSquVQUZxcxUc5vxAgpkvOCsULCAuU-nvqRkdogdna5WgQzAzR0IGsajUwJLthA/exec'; 
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbwHCtd8-rGUYnxCjYvh15-5R8IGTQksxCLnem3zcqx3ptWIhDIoBRU1Ui4dWP6k9C-R8Q/exec'; 
 
     const html5QrCode = new Html5Qrcode("reader");
 
@@ -239,7 +239,7 @@
     }
 
     function togglePrintFields() {
-        const type = document.getElementById('print-type').value;
+        const type = document.getElementById('p-tipo').value;
         document.getElementById('field-dni').style.display = (type === 'individual') ? 'block' : 'none';
         document.getElementById('field-seccion').style.display = (type === 'seccion') ? 'flex' : 'none';
     }
@@ -304,32 +304,26 @@
     function generarPDF() {
         const datos = {
             action: 'imprimir',
-            tipo: document.getElementById('print-type').value,
-            dni: document.getElementById('print-dni').value,
-            gradoSeccion: document.getElementById('print-grado').value + document.getElementById('print-seccion').value
+            tipo: document.getElementById('p-tipo').value,
+            dni: document.getElementById('p-dni').value,
+            gradoSeccion: document.getElementById('p-grado').value + document.getElementById('p-seccion').value
         };
 
-        alert("Generando PDF... por favor espere a que se abra el archivo.");
+        alert("Generando PDF institucional... por favor espere a que se abra el archivo.");
 
         fetch(scriptURL, { method: 'POST', body: JSON.stringify(datos) })
         .then(r => r.text()).then(url => {
             if(url.includes("http")) {
-                // Intentar abrir. Si falla, mostrar el link para clic manual
                 const win = window.open(url, '_blank');
                 if (!win || win.closed || typeof win.closed == 'undefined') {
-                    alert("El navegador bloqueó la ventana. Haga clic aquí para ver el PDF: " + url);
-                    // Opcional: Crear un enlace temporal para que el usuario haga clic
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.target = '_blank';
-                    a.innerText = "CLIC AQUÍ PARA DESCARGAR CARNETS";
-                    document.getElementById('impresion').appendChild(a);
+                    alert("El navegador bloqueó la ventana. Por favor permita las ventanas emergentes o haga clic aquí: " + url);
                 }
             } else {
-                alert("Error: " + url);
+                alert("Servidor dice: " + url);
             }
         }).catch(err => alert("Error de conexión con el script."));
     }
+
     function iniciarCamara() {
         html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, onScanSuccess)
         .then(() => document.getElementById('status-msg').style.display = 'none')

@@ -184,10 +184,6 @@
 
         <div id="impresion" class="section">
             <div class="form-group">
-                <label>ID Imagen de Fondo (Google Drive):</label>
-                <input type="text" id="bg-id" class="form-control" placeholder="Pegue el ID de la imagen aquí">
-            </div>
-            <div class="form-group">
                 <label>Opción de Impresión:</label>
                 <select id="print-type" class="form-control" onchange="togglePrintFields()">
                     <option value="individual">Por Alumno (DNI)</option>
@@ -221,8 +217,8 @@
     </div>
 
 <script>
-    // --- REEMPLAZA ESTA URL CON TU GOOGLE APPS SCRIPT ---
-    const scriptURL = 'https://script.google.com/macros/s/AKfycbxLI_wsr_GcyVkfis0-oF7DVGTgqt9cLrkZDt6uKWMVn_vj4N2XzXVBOKu7z8lW_-pxCg/exec'; 
+    // --- URL DE TU GOOGLE APPS SCRIPT ---
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbxnO810DDwZoSbTpdKydkgf6K2Z1dldSVew7pod46xlZm_5vvLwJqWRNiYBq0vlwI_a5Q/exec'; 
 
     const html5QrCode = new Html5Qrcode("reader");
 
@@ -261,7 +257,6 @@
     }
 
     // --- ACCIÓN: GUARDAR ALUMNO ---
-    // --- ACCIÓN: GUARDAR ALUMNO (CORREGIDO) ---
     function guardarAlumno() {
         const id = document.getElementById('new-dni').value;
         const nombres = document.getElementById('new-nombres').value.toUpperCase();
@@ -282,19 +277,17 @@
             perfil: "ESTUDIANTE"
         };
 
-        alert("Enviando datos... por favor espere confirmación.");
+        alert("Enviando datos... por favor espere.");
 
-        // Usamos URLSearchParams para que Google Apps Script lo reciba sin problemas de CORS
         fetch(scriptURL, {
             method: 'POST',
-            mode: 'no-cors', // Evita el error de bloqueo del navegador
+            mode: 'no-cors', 
             cache: 'no-cache',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(datos)
         })
         .then(() => {
             alert("¡Proceso completado! Verifique su hoja de Excel.");
-            // Limpiar campos
             document.getElementById('new-dni').value = "";
             document.getElementById('new-nombres').value = "";
             document.getElementById('new-apellidos').value = "";
@@ -309,22 +302,23 @@
 
     // --- ACCIÓN: IMPRESIÓN ---
     function generarPDF() {
-        const bgId = document.getElementById('bg-id').value;
-        if(!bgId) return alert("Ingrese el ID de la imagen de fondo de Drive");
-
         const datos = {
             action: 'imprimir',
-            bgId: bgId,
             tipo: document.getElementById('print-type').value,
             dni: document.getElementById('print-dni').value,
             gradoSeccion: document.getElementById('print-grado').value + document.getElementById('print-seccion').value
         };
 
-        alert("Generando PDF... por favor espere a que abra la nueva pestaña.");
+        alert("Generando PDF... por favor espere.");
 
         fetch(scriptURL, { method: 'POST', body: JSON.stringify(datos) })
         .then(r => r.text()).then(url => {
-            if(url.includes("http")) window.open(url, '_blank'); else alert(url);
+            if(url.includes("http")) {
+                const win = window.open(url, '_blank');
+                if(!win) alert("Por favor permita las ventanas emergentes para ver el PDF.");
+            } else {
+                alert(url);
+            }
         });
     }
 

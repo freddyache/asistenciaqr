@@ -301,6 +301,7 @@
     }
 
     // --- ACCIÓN: IMPRESIÓN ---
+    // --- ACCIÓN: IMPRESIÓN ---
     function generarPDF() {
         const datos = {
             action: 'imprimir',
@@ -309,19 +310,47 @@
             gradoSeccion: document.getElementById('p-grado').value + document.getElementById('p-seccion').value
         };
 
-        alert("Generando PDF institucional... por favor espere a que se abra el archivo.");
+        // 1. Mostrar mensaje de espera
+        const btnCargar = document.querySelector("#impresion .btn-dark");
+        const textoOriginal = btnCargar.innerText;
+        btnCargar.innerText = "⌛ Generando... espere";
+        btnCargar.disabled = true;
+
+        // Limpiar botones de descarga anteriores si existen
+        const viejoLink = document.getElementById('temp-download-link');
+        if(viejoLink) viejoLink.remove();
 
         fetch(scriptURL, { method: 'POST', body: JSON.stringify(datos) })
-        .then(r => r.text()).then(url => {
+        .then(r => r.text())
+        .then(url => {
+            btnCargar.innerText = textoOriginal;
+            btnCargar.disabled = false;
+
             if(url.includes("http")) {
-                const win = window.open(url, '_blank');
-                if (!win || win.closed || typeof win.closed == 'undefined') {
-                    alert("El navegador bloqueó la ventana. Por favor permita las ventanas emergentes o haga clic aquí: " + url);
-                }
+                // 2. Crear un botón de descarga visible y llamativo
+                const linkWrap = document.createElement('div');
+                linkWrap.id = 'temp-download-link';
+                linkWrap.innerHTML = `
+                    <a href="${url}" target="_blank" 
+                       style="display: block; background: #007bff; color: white; text-align: center; 
+                              padding: 15px; border-radius: 12px; margin-top: 20px; 
+                              text-decoration: none; font-weight: bold; border: 2px solid #0056b3;">
+                       📥 CLIC AQUÍ PARA DESCARGAR PDF
+                    </a>
+                `;
+                document.getElementById('impresion').appendChild(linkWrap);
+                
+                // Intentar abrir de todas formas, pero ahora el usuario tiene el botón de respaldo
+                window.open(url, '_blank');
             } else {
-                alert("Servidor dice: " + url);
+                alert("Error del servidor: " + url);
             }
-        }).catch(err => alert("Error de conexión con el script."));
+        })
+        .catch(err => {
+            btnCargar.innerText = textoOriginal;
+            btnCargar.disabled = false;
+            alert("Error de conexión. Revisa el Drive API.");
+        });
     }
 
     function iniciarCamara() {

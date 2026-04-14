@@ -231,7 +231,7 @@
         document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
         document.getElementById(id).classList.add('active');
         
-        const titulos = {'escaneo':'Asistencia QR', 'agregar':'Nuevo Alumno', 'impresion':'Generador de Carnets'};
+        const titulos = {'escaneo':'https://script.google.com/macros/s/AKfycbzfJWs3LUqnAH2x7IuaKagHVwlD8UIeTFCgnh1QG8uf1TGwWMfdgVNZTT3fypcqZ-xMZg/exec'};
         document.getElementById('view-title').innerText = titulos[id];
         
         if(id === 'escaneo') iniciarCamara(); else detenerCamara();

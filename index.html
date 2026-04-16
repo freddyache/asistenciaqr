@@ -20,6 +20,7 @@
             min-height: 100vh;
             display: flex;
             justify-content: center;
+            overflow-x: hidden;
         }
 
         /* --- MENÚ HAMBURGUESA --- */
@@ -120,106 +121,157 @@
 </head>
 <body>
 
-    <div class="menu-btn" onclick="toggleMenu()"> ☰ </div>
+    <div id="splash-screen" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle, #1a253a 0%, #0a1120 100%); z-index: 2000; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; transition: opacity 0.6s ease-out;">
+        
+        <img src="https://sesohs1007.github.io/img/logo.png" alt="Logo" style="width: 140px; height: auto; margin-bottom: 25px; border-radius: 50%; box-shadow: 0 0 25px rgba(77, 163, 255, 0.3);">
 
-    <div class="side-menu" id="sideMenu">
-        <div class="menu-item" onclick="showSection('escaneo')">🏠 Escáner Asistencia</div>
-        <div class="menu-item" onclick="showSection('agregar')">👤 Agregar Estudiante</div>
-        <div class="menu-item" onclick="showSection('impresion')">🪪 Impresión de Carnets</div>
+        <div style="text-align: center; margin-bottom: 40px;">
+            <p style="color: #4da3ff; font-size: 14px; margin: 0; letter-spacing: 1px;">Institución Educativa</p>
+            <h2 style="font-size: 22px; margin: 10px 0; letter-spacing: 1px; color: #fff;">"SANTO DOMINGO DE GUZMAN"</h2>
+            <p style="font-style: italic; font-size: 13px; color: #888; margin: 5px 0 25px 0;">"SER SANTO DOMINGUINO ES, SER EL MEJOR"</p>
+            <div style="height: 1px; width: 60px; background: #4da3ff; margin: 0 auto 20px;"></div>
+            <h3 style="color: #4da3ff; font-size: 15px; font-weight: normal; letter-spacing: 3px; text-transform: uppercase;">SISTEMA DE ASISTENCIA</h3>
+        </div>
+
+        <div style="width: 70%; max-width: 280px; height: 6px; background: rgba(255,255,255,0.1); border-radius: 10px; overflow: hidden;">
+            <div id="progress-bar" style="width: 0%; height: 100%; background: linear-gradient(90deg, #007bff, #4da3ff); transition: width 0.1s linear;"></div>
+        </div>
+        
+        <p style="color: #444; font-size: 11px; position: absolute; bottom: 30px;">Año Escolar 2026</p>
     </div>
-    <div class="overlay" id="overlay" onclick="toggleMenu()"></div>
 
-    <div class="container">
-        <div class="header">
-            <h1 id="view-title">Asistencia QR</h1>
+    <div id="main-app-content" style="visibility: hidden; opacity: 0; width: 100%; display: flex; justify-content: center; transition: opacity 0.8s ease-in;">
+        
+        <div class="menu-btn" onclick="toggleMenu()"> ☰ </div>
+
+        <div class="side-menu" id="sideMenu">
+            <div class="menu-item" onclick="showSection('escaneo')">🏠 Escáner Asistencia</div>
+            <div class="menu-item" onclick="showSection('agregar')">👤 Agregar Estudiante</div>
+            <div class="menu-item" onclick="showSection('impresion')">🪪 Impresión de Carnets</div>
         </div>
+        <div class="overlay" id="overlay" onclick="toggleMenu()"></div>
 
-        <div id="escaneo" class="section active">
-            <div class="camera-box">
-                <div id="status-msg">Iniciando cámara...</div>
-                <div id="reader"></div>
+        <div class="container">
+            <div class="header">
+                <h1 id="view-title">Asistencia QR</h1>
             </div>
-            <div class="form-group" style="margin-top: 20px;">
-                <label>Tipo de Registro:</label>
-                <select id="status-select" class="form-control">
-                    <option value="ENTRADA">INGRESO</option>
-                    <option value="SALIDA">SALIDA</option>
-                </select>
-            </div>
-        </div>
 
-        <div id="agregar" class="section">
-            
-            <div class="form-group">
-                <label>DNI (ID):</label>
-                <input type="number" id="new-dni" class="form-control" placeholder="Número de DNI">
-            </div>
-            <div class="form-group">
-                <label>Nombres:</label>
-                <input type="text" id="new-nombres" class="form-control" placeholder="EJ: JUAN ROBERTO">
-            </div>
-            <div class="form-group">
-                <label>Apellidos:</label>
-                <input type="text" id="new-apellidos" class="form-control" placeholder="EJ: PEREZ GARCIA">
-            </div>
-            <div style="display: flex; gap: 10px;">
-                <div style="flex:1">
-                    <label>Grado:</label>
-                    <select id="new-grado" class="form-control">
-                        <option value="1">1°</option><option value="2">2°</option><option value="3">3°</option><option value="4">4°</option><option value="5">5°</option>
-                    </select>
+            <div id="escaneo" class="section active">
+                <div class="camera-box">
+                    <div id="status-msg">Iniciando cámara...</div>
+                    <div id="reader"></div>
                 </div>
-                <div style="flex:1">
-                    <label>Sección:</label>
-                    <select id="new-seccion" class="form-control">
-                        <option value="A">A</option><option value="B">B</option>
-                    </select>
-                </div>
-            </div>
-            <div class="form-group" style="margin-top:15px;">
-                <label>Teléfono:</label>
-                <input type="tel" id="new-celular" class="form-control" placeholder="999888777">
-            </div>
-            <button class="btn-main btn-blue" onclick="guardarAlumno()">Guardar Estudiante</button>
-        </div>
-
-        <div id="impresion" class="section">
-            <div class="form-group">
-                <label>Modo de Generación:</label>
-                <select id="p-tipo" class="form-control" onchange="togglePrintFields()">
-                    <option value="individual">DNI Específico</option>
-                    <option value="seccion">Sección Completa</option>
-                    <option value="todos">Toda la Institución</option>
-                </select>
-            </div>
-
-            <div id="field-dni" class="form-group">
-                <label>Ingrese DNI:</label>
-                <input type="number" id="p-dni" class="form-control" placeholder="Ej: 71234567">
-            </div>
-
-            <div id="field-seccion" class="form-group" style="display:none; gap:10px;">
-                <div style="flex:1">
-                    <label>Grado:</label>
-                    <select id="p-grado" class="form-control">
-                        <option value="1">1°</option><option value="2">2°</option><option value="3">3°</option><option value="4">4°</option><option value="5">5°</option>
-                    </select>
-                </div>
-                <div style="flex:1">
-                    <label>Sección:</label>
-                    <select id="p-seccion" class="form-control">
-                        <option value="A">A</option><option value="B">B</option>
+                <div class="form-group" style="margin-top: 20px;">
+                    <label>Tipo de Registro:</label>
+                    <select id="status-select" class="form-control">
+                        <option value="ENTRADA">INGRESO</option>
+                        <option value="SALIDA">SALIDA</option>
                     </select>
                 </div>
             </div>
 
-            <button class="btn-main btn-dark" onclick="generarPDF()">Generar PDF (9 por hoja)</button>
+            <div id="agregar" class="section">
+                <div class="form-group">
+                    <label>DNI (ID):</label>
+                    <input type="number" id="new-dni" class="form-control" placeholder="Número de DNI">
+                </div>
+                <div class="form-group">
+                    <label>Nombres:</label>
+                    <input type="text" id="new-nombres" class="form-control" placeholder="EJ: JUAN ROBERTO">
+                </div>
+                <div class="form-group">
+                    <label>Apellidos:</label>
+                    <input type="text" id="new-apellidos" class="form-control" placeholder="EJ: PEREZ GARCIA">
+                </div>
+                <div style="display: flex; gap: 10px;">
+                    <div style="flex:1">
+                        <label>Grado:</label>
+                        <select id="new-grado" class="form-control">
+                            <option value="1">1°</option><option value="2">2°</option><option value="3">3°</option><option value="4">4°</option><option value="5">5°</option>
+                        </select>
+                    </div>
+                    <div style="flex:1">
+                        <label>Sección:</label>
+                        <select id="new-seccion" class="form-control">
+                            <option value="A">A</option><option value="B">B</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group" style="margin-top:15px;">
+                    <label>Teléfono:</label>
+                    <input type="tel" id="new-celular" class="form-control" placeholder="999888777">
+                </div>
+                <button class="btn-main btn-blue" onclick="guardarAlumno()">Guardar Estudiante</button>
+            </div>
+
+            <div id="impresion" class="section">
+                <div class="form-group">
+                    <label>Modo de Generación:</label>
+                    <select id="p-tipo" class="form-control" onchange="togglePrintFields()">
+                        <option value="individual">DNI Específico</option>
+                        <option value="seccion">Sección Completa</option>
+                        <option value="todos">Toda la Institución</option>
+                    </select>
+                </div>
+
+                <div id="field-dni" class="form-group">
+                    <label>Ingrese DNI:</label>
+                    <input type="number" id="p-dni" class="form-control" placeholder="Ej: 71234567">
+                </div>
+
+                <div id="field-seccion" class="form-group" style="display:none; gap:10px;">
+                    <div style="flex:1">
+                        <label>Grado:</label>
+                        <select id="p-grado" class="form-control">
+                            <option value="1">1°</option><option value="2">2°</option><option value="3">3°</option><option value="4">4°</option><option value="5">5°</option>
+                        </select>
+                    </div>
+                    <div style="flex:1">
+                        <label>Sección:</label>
+                        <select id="p-seccion" class="form-control">
+                            <option value="A">A</option><option value="B">B</option>
+                        </select>
+                    </div>
+                </div>
+
+                <button class="btn-main btn-dark" onclick="generarPDF()">Generar PDF (9 por hoja)</button>
+            </div>
         </div>
     </div>
 
 <script>
     const scriptURL = 'https://script.google.com/macros/s/AKfycbxy058xPngzytbFMAiyAfBQadN75MH2lg4asXrx9WiHnGOMwiQHvRI-t1mdrMzhQH9FpA/exec';
     const html5QrCode = new Html5Qrcode("reader");
+
+    // --- LÓGICA SPLASH SCREEN ---
+    window.onload = function() {
+        const splash = document.getElementById('splash-screen');
+        const mainContent = document.getElementById('main-app-content');
+        const progressBar = document.getElementById('progress-bar');
+        
+        let width = 0;
+        const duracionTotal = 2500; // 2.5 segundos
+        const intervalo = 25; 
+        const paso = 100 / (duracionTotal / intervalo);
+
+        const loading = setInterval(() => {
+            if (width >= 100) {
+                clearInterval(loading);
+                // Salida del Splash
+                splash.style.opacity = '0';
+                setTimeout(() => {
+                    splash.style.display = 'none';
+                    mainContent.style.visibility = 'visible';
+                    mainContent.style.opacity = '1';
+                    // Iniciar cámara solo cuando ya es visible
+                    iniciarCamara();
+                }, 600);
+            } else {
+                width += paso;
+                progressBar.style.width = width + '%';
+            }
+        }, intervalo);
+    };
 
     function toggleMenu() {
         document.getElementById('sideMenu').classList.toggle('active');
@@ -230,7 +282,6 @@
         document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
         document.getElementById(id).classList.add('active');
         
-        // CORRECCIÓN DE TÍTULOS
         const titulos = {
             'escaneo': 'Asistencia QR',
             'agregar': 'Agregar Estudiante',
@@ -359,8 +410,6 @@
     }
 
     function detenerCamara() { if(html5QrCode.isScanning) html5QrCode.stop(); }
-
-    window.onload = iniciarCamara;
 </script>
 </body>
 </html>

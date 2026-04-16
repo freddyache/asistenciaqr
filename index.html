@@ -149,9 +149,9 @@
         </div>
 
         <div id="agregar" class="section">
-  <div id="tituloFormAgregar" style="text-align: center; color: white; background-color: #28a745; padding: 15px; margin: -20px -20px 20px -20px; border-radius: 12px 12px 0 0; font-weight: bold; font-size: 1.2em;">
-    Agregar Alumno
-  </div>
+            <div id="tituloFormAgregar" style="text-align: center; color: white; background-color: #28a745; padding: 15px; margin: -25px -25px 20px -25px; border-radius: 0; font-weight: bold; font-size: 1.2em;">
+                Agregar Alumno
+            </div>
             <div class="form-group">
                 <label>DNI (ID):</label>
                 <input type="number" id="new-dni" class="form-control" placeholder="Número de DNI">
@@ -220,8 +220,7 @@
     </div>
 
 <script>
-    // --- URL DE TU GOOGLE APPS SCRIPT ---
-    const scriptURL = 'https://script.google.com/macros/s/AKfycbxy058xPngzytbFMAiyAfBQadN75MH2lg4asXrx9WiHnGOMwiQHvRI-t1mdrMzhQH9FpA/exec'
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbxy058xPngzytbFMAiyAfBQadN75MH2lg4asXrx9WiHnGOMwiQHvRI-t1mdrMzhQH9FpA/exec';
     const html5QrCode = new Html5Qrcode("reader");
 
     function toggleMenu() {
@@ -233,8 +232,13 @@
         document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
         document.getElementById(id).classList.add('active');
         
-        const titulos = {'escaneo':'https://script.google.com/macros/s/AKfycbzfJWs3LUqnAH2x7IuaKagHVwlD8UIeTFCgnh1QG8uf1TGwWMfdgVNZTT3fypcqZ-xMZg/exec'};
-        document.getElementById('view-title').innerText = titulos[id];
+        // CORRECCIÓN DE TÍTULOS
+        const titulos = {
+            'escaneo': 'Asistencia QR',
+            'agregar': 'Agregar Estudiante',
+            'impresion': 'Impresión de Carnets'
+        };
+        document.getElementById('view-title').innerText = titulos[id] || "Sistema Aula PIP";
         
         if(id === 'escaneo') iniciarCamara(); else detenerCamara();
         toggleMenu();
@@ -246,7 +250,6 @@
         document.getElementById('field-seccion').style.display = (type === 'seccion') ? 'flex' : 'none';
     }
 
-    // --- ACCIÓN: ASISTENCIA ---
     function onScanSuccess(dni) {
         const est = document.getElementById('status-select').value;
         html5QrCode.stop().then(() => {
@@ -258,7 +261,6 @@
         });
     }
 
-    // --- ACCIÓN: GUARDAR ALUMNO ---
     function guardarAlumno() {
         const id = document.getElementById('new-dni').value;
         const nombres = document.getElementById('new-nombres').value.toUpperCase();
@@ -284,12 +286,10 @@
         fetch(scriptURL, {
             method: 'POST',
             mode: 'no-cors', 
-            cache: 'no-cache',
-            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(datos)
         })
         .then(() => {
-            alert("¡Proceso completado! Verifique su hoja de Excel.");
+            alert("¡Proceso completado! Estudiante registrado.");
             document.getElementById('new-dni').value = "";
             document.getElementById('new-nombres').value = "";
             document.getElementById('new-apellidos').value = "";
@@ -302,8 +302,6 @@
         });
     }
 
-    // --- ACCIÓN: IMPRESIÓN ---
-    // --- ACCIÓN: IMPRESIÓN ---
     function generarPDF() {
         const datos = {
             action: 'imprimir',
@@ -312,13 +310,11 @@
             gradoSeccion: document.getElementById('p-grado').value + document.getElementById('p-seccion').value
         };
 
-        // 1. Mostrar mensaje de espera
         const btnCargar = document.querySelector("#impresion .btn-dark");
         const textoOriginal = btnCargar.innerText;
         btnCargar.innerText = "⌛ Generando... espere";
         btnCargar.disabled = true;
 
-        // Limpiar botones de descarga anteriores si existen
         const viejoLink = document.getElementById('temp-download-link');
         if(viejoLink) viejoLink.remove();
 
@@ -329,7 +325,6 @@
             btnCargar.disabled = false;
 
             if(url.includes("http")) {
-                // 2. Crear un botón de descarga visible y llamativo
                 const linkWrap = document.createElement('div');
                 linkWrap.id = 'temp-download-link';
                 linkWrap.innerHTML = `
@@ -337,12 +332,10 @@
                        style="display: block; background: #007bff; color: white; text-align: center; 
                               padding: 15px; border-radius: 12px; margin-top: 20px; 
                               text-decoration: none; font-weight: bold; border: 2px solid #0056b3;">
-                       📥 CLIC AQUÍ PARA DESCARGAR PDF
+                        📥 CLIC AQUÍ PARA DESCARGAR PDF
                     </a>
                 `;
                 document.getElementById('impresion').appendChild(linkWrap);
-                
-                // Intentar abrir de todas formas, pero ahora el usuario tiene el botón de respaldo
                 window.open(url, '_blank');
             } else {
                 alert("Error del servidor: " + url);
@@ -351,14 +344,20 @@
         .catch(err => {
             btnCargar.innerText = textoOriginal;
             btnCargar.disabled = false;
-            alert("Error de conexión. Revisa el Drive API.");
+            alert("Error de conexión.");
         });
     }
 
     function iniciarCamara() {
         html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, onScanSuccess)
-        .then(() => document.getElementById('status-msg').style.display = 'none')
-        .catch(() => document.getElementById('status-msg').innerText = "Error: Cámara no detectada.");
+        .then(() => {
+            const statusMsg = document.getElementById('status-msg');
+            if(statusMsg) statusMsg.style.display = 'none';
+        })
+        .catch(() => {
+            const statusMsg = document.getElementById('status-msg');
+            if(statusMsg) statusMsg.innerText = "Error: Cámara no detectada.";
+        });
     }
 
     function detenerCamara() { if(html5QrCode.isScanning) html5QrCode.stop(); }

@@ -605,15 +605,18 @@ function showSection(id, title) {
         targetSection.style.display = 'block';
     }
 
-    // 3. Actualizar el título de la cabecera (VIEW-TITLE)
+    // 3. ACTUALIZACIÓN DE TÍTULOS (Corregido para las 4 secciones)
     const viewTitle = document.getElementById('view-title');
     if (viewTitle) {
-        // Si no hay título, ponemos uno por defecto según el ID
+        // Si el título es undefined, asignamos el nombre según el ID de la sección
         if (!title || title === 'undefined') {
             if (id === 'escaneo') viewTitle.innerText = 'Asistencia QR';
             else if (id === 'reportes') viewTitle.innerText = 'Reporte de Asistencia';
+            else if (id === 'agregar') viewTitle.innerText = 'Nuevo Estudiante';
+            else if (id === 'impresion') viewTitle.innerText = 'Imprimir Carnets';
             else viewTitle.innerText = 'Sistema Adprint';
         } else {
+            // Si el título sí viene correctamente, lo usamos
             viewTitle.innerText = title;
         }
     }

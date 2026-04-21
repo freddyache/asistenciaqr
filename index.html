@@ -174,34 +174,52 @@
             <div class="menu-item" onclick="showSection('impresion')">🪪 Impresión de Carnets</div>
             <div class="menu-item" onclick="showSection('reportes')">📊 Reporte Estadístico</div>
         </div>
-        <div id="reportes" class="section">
-    <div class="form-group">
-        <label>Rango de Reporte:</label>
-        <select id="r-rango" class="form-control" onchange="generarEstadisticas()">
-            <option value="diario">Hoy</option>
-            <option value="semanal">Semanal</option>
-            <option value="mensual">Mensual</option>
+        <div id="reportes" class="section" style="display:none;">
+    <h2 style="text-align: center; color: var(--dark);">📊 Reporte de Asistencia</h2>
+    
+    <div class="card">
+        <label>Seleccionar Periodo:</label>
+        <select id="r-rango" class="input-field" onchange="generarEstadisticas()">
+            <option value="diario">Hoy (Vista Diaria)</option>
+            <option value="semanal">Semanal (7 días)</option>
+            <option value="mensual">Mensual (30 días)</option>
         </select>
     </div>
 
-    <div class="stats-grid">
-        <div class="stat-card" style="background: #4a90e2;"> <span id="kpi-total">0</span> <label>Alumnos</label> </div>
-        <div class="stat-card" style="background: #2ecc71;"> <span id="kpi-puntual">0</span> <label>Puntuales</label> </div>
-        <div class="stat-card" style="background: #f39c12;"> <span id="kpi-tardanza">0</span> <label>Tardanzas</label> </div>
-        <div class="stat-card" style="background: #e74c3c;"> <span id="kpi-ausente">0</span> <label>Ausencias</label> </div>
+    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 15px;">
+        <div style="background: #4a90e2; color: white; padding: 15px; border-radius: 12px; text-align: center;">
+            <span id="kpi-total" style="display: block; font-size: 24px; font-weight: bold;">0</span>
+            <label style="font-size: 12px; opacity: 0.9;">Total Alumnos</label>
+        </div>
+        <div style="background: #2ecc71; color: white; padding: 15px; border-radius: 12px; text-align: center;">
+            <span id="kpi-puntual" style="display: block; font-size: 24px; font-weight: bold;">0</span>
+            <label style="font-size: 12px; opacity: 0.9;">Puntuales</label>
+        </div>
+        <div style="background: #f39c12; color: white; padding: 15px; border-radius: 12px; text-align: center;">
+            <span id="kpi-tardanza" style="display: block; font-size: 24px; font-weight: bold;">0</span>
+            <label style="font-size: 12px; opacity: 0.9;">Tardanzas</label>
+        </div>
+        <div style="background: #e74c3c; color: white; padding: 15px; border-radius: 12px; text-align: center;">
+            <span id="kpi-ausente" style="display: block; font-size: 24px; font-weight: bold;">0</span>
+            <label style="font-size: 12px; opacity: 0.9;">Ausentes</label>
+        </div>
     </div>
 
-    <label>DISTRIBUCIÓN P / T / A</label>
-    <div class="dist-bar-container">
-        <div id="bar-p" class="dist-bar" style="background: #2ecc71; width: 0%"></div>
-        <div id="bar-t" class="dist-bar" style="background: #f39c12; width: 0%"></div>
-        <div id="bar-a" class="dist-bar" style="background: #e74c3c; width: 0%"></div>
-    </div>
-
-    <div style="margin-top: 20px;">
-        <div class="legend-item"><div class="dot" style="background:#2ecc71"></div> Puntual: <b id="pct-p">0%</b> (<span id="cnt-p">0</span>)</div>
-        <div class="legend-item"><div class="dot" style="background:#f39c12"></div> Tardanza: <b id="pct-t">0%</b> (<span id="cnt-t">0</span>)</div>
-        <div class="legend-item"><div class="dot" style="background:#e74c3c"></div> Ausente: <b id="pct-a">0%</b> (<span id="cnt-a">0</span>)</div>
+    <div style="margin-top: 25px; background: white; padding: 15px; border-radius: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+        <label style="font-weight: bold; font-size: 13px; color: #555;">DISTRIBUCIÓN DE ASISTENCIA</label>
+        <div style="display: flex; height: 30px; border-radius: 15px; overflow: hidden; margin-top: 10px; background: #eee;">
+            <div id="bar-p" style="background: #2ecc71; width: 0%; transition: width 0.5s;"></div>
+            <div id="bar-t" style="background: #f39c12; width: 0%; transition: width 0.5s;"></div>
+            <div id="bar-a" style="background: #e74c3c; width: 0%; transition: width 0.5s;"></div>
+        </div>
+        
+        <div style="margin-top: 15px; font-size: 13px;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                <span>🟢 Puntual: <b id="pct-p">0%</b></span>
+                <span>🟠 Tardanza: <b id="pct-t">0%</b></span>
+                <span>🔴 Ausente: <b id="pct-a">0%</b></span>
+            </div>
+        </div>
     </div>
 </div>
         <div class="overlay" id="overlay" onclick="toggleMenu()"></div>
@@ -509,36 +527,52 @@
 function generarEstadisticas() {
     const rango = document.getElementById('r-rango').value;
     
+    // Mostramos carga en los números
+    document.getElementById('kpi-total').innerText = "...";
+
     fetch(scriptURL, {
         method: 'POST',
         body: JSON.stringify({ action: 'obtenerEstadisticas', rango: rango })
     })
     .then(r => r.json())
     .then(data => {
-        // Actualizar KPIs
+        // Actualizar números
         document.getElementById('kpi-total').innerText = data.totalAlumnos;
         document.getElementById('kpi-puntual').innerText = data.puntuales;
         document.getElementById('kpi-tardanza').innerText = data.tardanzas;
         document.getElementById('kpi-ausente').innerText = data.ausentes;
 
-        // Calcular porcentajes
-        const pP = (data.puntuales / data.totalAlumnos * 100).toFixed(1);
-        const pT = (data.tardanzas / data.totalAlumnos * 100).toFixed(1);
-        const pA = (data.ausentes / data.totalAlumnos * 100).toFixed(1);
+        // Calcular porcentajes para la barra
+        const total = data.totalAlumnos || 1;
+        const pP = (data.puntuales / total * 100).toFixed(1);
+        const pT = (data.tardanzas / total * 100).toFixed(1);
+        const pA = (data.ausentes / total * 100).toFixed(1);
 
-        // Actualizar Barras
+        // Animar barras
         document.getElementById('bar-p').style.width = pP + "%";
         document.getElementById('bar-t').style.width = pT + "%";
         document.getElementById('bar-a').style.width = pA + "%";
 
-        // Actualizar Leyenda
+        // Textos de porcentaje
         document.getElementById('pct-p').innerText = pP + "%";
-        document.getElementById('cnt-p').innerText = data.puntuales;
         document.getElementById('pct-t').innerText = pT + "%";
-        document.getElementById('cnt-t').innerText = data.tardanzas;
         document.getElementById('pct-a').innerText = pA + "%";
-        document.getElementById('cnt-a').innerText = data.ausentes;
+    })
+    .catch(err => {
+        console.error("Error al cargar estadísticas:", err);
+        alert("Error al conectar con el servidor de reportes.");
     });
+}
+
+// Asegurar que cargue cuando se abra la sección
+function showSection(id) {
+    document.querySelectorAll('.section').forEach(s => s.style.display = 'none');
+    document.getElementById(id).style.display = 'block';
+    
+    // Si entramos a reportes, disparamos la carga de datos
+    if(id === 'reportes') {
+        generarEstadisticas();
+    }
 }
 
 // Actualizar showSection para cargar estadísticas

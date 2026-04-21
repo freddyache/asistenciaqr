@@ -591,39 +591,43 @@ function toggleMenu() {
 
 // Función para cambiar de sección y CERRAR el menú
 function showSection(id, title) {
-    // 1. Cambiar visibilidad de secciones
-    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    // 1. Ocultar todas las secciones
+    document.querySelectorAll('.section').forEach(s => {
+        s.classList.remove('active');
+        s.style.display = 'none'; // Aseguramos que se oculte
+    });
+
+    // 2. Mostrar la sección seleccionada
     const target = document.getElementById(id);
-    if (target) target.classList.add('active');
+    if (target) {
+        target.classList.add('active');
+        target.style.display = 'block'; // Aseguramos que se muestre
+    }
 
-    // 2. Cambiar el título
-    document.getElementById('view-title').innerText = title;
+    // 3. Cambiar el título en la cabecera (si existe el elemento)
+    const viewTitle = document.getElementById('view-title');
+    if (viewTitle && title) {
+        viewTitle.innerText = title;
+    }
 
-    // 3. CERRAR EL MENÚ (Esto es lo que faltaba)
+    // 4. CERRAR EL MENÚ LATERAL
     const menu = document.getElementById('sideMenu');
-    menu.classList.remove('active');
+    if (menu) {
+        menu.classList.remove('active');
+    }
 
-    // 4. Lógica de cámara
+    // 5. Lógica de la cámara (Escáner)
     if (id === 'escaneo') {
         iniciarCamara();
     } else {
-        if (typeof html5QrCode !== 'undefined') {
+        // Si salimos de escaneo, detenemos la cámara para no gastar batería
+        if (typeof html5QrCode !== 'undefined' && html5QrCode.isScanning) {
             html5QrCode.stop().catch(() => {});
         }
     }
 
-    // 5. Lógica de reportes
+    // 6. Lógica de reportes (Estadísticas)
     if (id === 'reportes') {
-        generarEstadisticas();
-    }
-}
-// Asegurar que cargue cuando se abra la sección
-function showSection(id) {
-    document.querySelectorAll('.section').forEach(s => s.style.display = 'none');
-    document.getElementById(id).style.display = 'block';
-    
-    // Si entramos a reportes, disparamos la carga de datos
-    if(id === 'reportes') {
         generarEstadisticas();
     }
 }

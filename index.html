@@ -242,7 +242,7 @@
     </div>
 
 <script>
-    const scriptURL = 'https://script.google.com/macros/s/AKfycbzf-codCinX4IhXrQ0zaHkpGpf9W9dbOxOsg8G-3T2Gj8OqHLkoGgI2iwhn2iLIZH9U/exec';
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbwInsF1LslrxWnsVInkW7DttiUkBx8t6xPC_eyaGy5VqNYtPQNymyG8I2rIM2fAv-AfRg/exec';
     const html5QrCode = new Html5Qrcode("reader");
 
     // --- LÓGICA SPLASH SCREEN ---
@@ -301,24 +301,16 @@
         document.getElementById('field-seccion').style.display = (type === 'seccion') ? 'flex' : 'none';
     }
 
-    function onScanSuccess(decodedText) {
-    if (isProcessing) return;
-    isProcessing = true;
-
-    // Enviamos el DNI al servidor
-    fetch(scriptURL, {
-        method: 'POST',
-        body: JSON.stringify({ 
-            action: "asistencia", // El servidor busca esta palabra para guardar
-            id: decodedText 
-        })
-    })
-    .then(r => r.json())
-    .then(res => {
-        // ... (aquí va tu código para mostrar el nombre y estado en pantalla)
-        isProcessing = false; 
-    });
-}
+    function onScanSuccess(dni) {
+        const est = document.getElementById('status-select').value;
+        html5QrCode.stop().then(() => {
+            fetch(scriptURL, {
+                method: 'POST',
+                body: JSON.stringify({ action: 'asistencia', id: dni, estado: est })
+            })
+            .then(r => r.text()).then(m => { alert(m); location.reload(); });
+        });
+    }
 
     function guardarAlumno() {
         const id = document.getElementById('new-dni').value;

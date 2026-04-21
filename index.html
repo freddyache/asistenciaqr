@@ -316,35 +316,36 @@
     const scriptURL = 'https://script.google.com/macros/s/AKfycbz7zpU0MI2Ney64c8OKg18KDBNUsiDo8JPHJ1KM6-3L_pId68KWo91E--DNUiViaaeKNA/exec';
     const html5QrCode = new Html5Qrcode("reader");
 
-    // --- LÓGICA SPLASH SCREEN ---
-    window.onload = function() {
-        const splash = document.getElementById('splash-screen');
-        const mainContent = document.getElementById('main-app-content');
-        const progressBar = document.getElementById('progress-bar');
-        
-        let width = 0;
-        const duracionTotal = 5500; // 5.5 segundos
-        const intervalo = 25; 
-        const paso = 100 / (duracionTotal / intervalo);
+   // --- LÓGICA SPLASH SCREEN (CORREGIDA) ---
+window.onload = function() {
+    const splash = document.getElementById('splash-screen');
+    const mainContent = document.getElementById('main-app-content'); // Verifica que este ID sea igual al de tu div principal
+    const progressBar = document.getElementById('progress-bar');
+    
+    let width = 0;
+    const duracionTotal = 5500; 
+    const intervalo = 25; 
+    const paso = 100 / (duracionTotal / intervalo);
 
-        const loading = setInterval(() => {
-            if (width >= 100) {
-                clearInterval(loading);
-                // Salida del Splash
-                splash.style.opacity = '0';
-                setTimeout(() => {
-                    splash.style.display = 'none';
+    const loading = setInterval(() => {
+        if (width >= 100) {
+            clearInterval(loading);
+            splash.style.opacity = '0';
+            setTimeout(() => {
+                splash.style.display = 'none';
+                if(mainContent) {
                     mainContent.style.visibility = 'visible';
                     mainContent.style.opacity = '1';
-                    // Iniciar cámara solo cuando ya es visible
-                    iniciarCamara();
-                }, 600);
-            } else {
-                width += paso;
-                progressBar.style.width = width + '%';
-            }
-        }, intervalo);
-    };
+                }
+                // IMPORTANTE: Al terminar, forzamos el inicio en Reporte de Asistencia
+                showSection('escaneo', 'Reporte de Asistencia');
+            }, 600);
+        } else {
+            width += paso;
+            progressBar.style.width = width + '%';
+        }
+    }, intervalo);
+};
 
     function showSection(id, title) {
     // 1. Ocultar todas las secciones
@@ -604,18 +605,30 @@ function showSection(id, title) {
         target.classList.add('active');
     }
 
-    // 3. CAMBIO DE TÍTULO EN LA BARRA AZUL SUPERIOR
-    // Aquí es donde evitamos que diga "Asistencia QR" en reportes
+    // 3. CORRECCIÓN DEFINITIVA DEL TÍTULO
     const viewTitle = document.getElementById('view-title');
     if (viewTitle) {
-        viewTitle.innerText = title; 
+        // Si el título es undefined o no existe, ponemos uno por defecto
+        if (!title || title === undefined || title === 'undefined') {
+            if (id === 'escaneo' || id === 'reportes') {
+                viewTitle.innerText = 'Reporte de Asistencia';
+            } else if (id === 'agregar') {
+                viewTitle.innerText = 'Nuevo Estudiante';
+            } else if (id === 'impresion') {
+                viewTitle.innerText = 'Imprimir Carnets';
+            } else {
+                viewTitle.innerText = 'Sistema Adprint';
+            }
+        } else {
+            viewTitle.innerText = title;
+        }
     }
 
     // 4. Cerrar el menú lateral
     const menu = document.getElementById('sideMenu');
     if (menu) menu.classList.remove('active');
 
-    // 5. Lógica de cámara
+    // 5. Lógica de cámara y reportes
     if (id === 'escaneo') {
         iniciarCamara();
     } else {
@@ -623,7 +636,8 @@ function showSection(id, title) {
             html5QrCode.stop().catch(() => {});
         }
     }
-
+    if (id === 'reportes') generarEstadisticas();
+}
     // 6. Lógica de carga de reporte
     if (id === 'reportes') {
         generarEstadisticas();

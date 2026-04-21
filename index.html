@@ -346,25 +346,44 @@
         }, intervalo);
     };
 
-    function toggleMenu() {
-        document.getElementById('sideMenu').classList.toggle('active');
-        document.getElementById('overlay').classList.toggle('active');
+    function showSection(id, title) {
+    // 1. Ocultar todas las secciones
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    
+    // 2. Mostrar la sección seleccionada
+    const targetSection = document.getElementById(id);
+    if (targetSection) {
+        targetSection.classList.add('active');
     }
 
-    function showSection(id) {
-        document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-        document.getElementById(id).classList.add('active');
-        
-        const titulos = {
-            'escaneo': 'Asistencia QR',
-            'agregar': 'Agregar Estudiante',
-            'impresion': 'Impresión de Carnets'
-        };
-        document.getElementById('view-title').innerText = titulos[id] || "Sistema Aula PIP";
-        
-        if(id === 'escaneo') iniciarCamara(); else detenerCamara();
-        toggleMenu();
+    // 3. Actualizar el título de la cabecera
+    const viewTitle = document.getElementById('view-title');
+    if (viewTitle) {
+        viewTitle.innerText = title;
     }
+
+    // --- LA SOLUCIÓN AQUÍ ---
+    // 4. Cerrar el menú automáticamente al elegir la opción
+    const sideMenu = document.getElementById('sideMenu');
+    if (sideMenu) {
+        sideMenu.classList.remove('active');
+    }
+
+    // 5. Lógica adicional (iniciar cámara o cargar reportes)
+    if (id === 'escaneo') {
+        iniciarCamara();
+    } else {
+        // Si no es escaneo, apagamos la cámara para ahorrar batería
+        if (typeof html5QrCode !== 'undefined') {
+            html5QrCode.stop().catch(() => {}); 
+        }
+    }
+
+    // Si es la sección de reportes, cargar los datos de inmediato
+    if (id === 'reportes') {
+        generarEstadisticas();
+    }
+}
 
     function togglePrintFields() {
         const type = document.getElementById('p-tipo').value;

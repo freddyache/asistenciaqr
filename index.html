@@ -438,16 +438,21 @@
     }
 
     function iniciarCamara() {
-        html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, onScanSuccess)
-        .then(() => {
-            const statusMsg = document.getElementById('status-msg');
-            if(statusMsg) statusMsg.style.display = 'none';
-        })
-        .catch(() => {
-            const statusMsg = document.getElementById('status-msg');
-            if(statusMsg) statusMsg.innerText = "Error: Cámara no detectada.";
-        });
-    }
+    const config = { 
+        fps: 15, // Velocidad de cuadros
+        qrbox: { width: 250, height: 250 }, 
+        aspectRatio: 1.0 
+    };
+
+    html5QrCode.start({ facingMode: "environment" }, config, onScanSuccess)
+    .then(() => {
+        isProcessing = false; // Nos aseguramos de que empiece desbloqueado
+        document.getElementById('status-msg').innerText = "Cámara lista. Escanee el carnet.";
+    })
+    .catch(err => {
+        document.getElementById('status-msg').innerText = "Error al iniciar cámara.";
+    });
+}
 
     function detenerCamara() { if(html5QrCode.isScanning) html5QrCode.stop(); }
 </script>

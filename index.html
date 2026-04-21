@@ -301,16 +301,54 @@
         document.getElementById('field-seccion').style.display = (type === 'seccion') ? 'flex' : 'none';
     }
 
-    function onScanSuccess(dni) {
-        const est = document.getElementById('status-select').value;
-        html5QrCode.stop().then(() => {
-            fetch(scriptURL, {
-                method: 'POST',
-                body: JSON.stringify({ action: 'asistencia', id: dni, estado: est })
-            })
-            .then(r => r.text()).then(m => { alert(m); location.reload(); });
-        });
+    function onScanSuccess(decodedText) {
+    if (isProcessing) return; // Evita escaneos múltiples del mismo código
+    isProcessing = true;
+
+    const statusMsg = document.getElementById('status-msg');
+    if (statusMsg) {
+        statusMsg.style.display = 'block';
+        statusMsg.innerHTML = "<span style='color:var(--primary)'>⏳ Registrando...</span>";
     }
+
+    fetch(scriptURL, {
+        method: 'POST',
+        body: JSON.stringify({ action: "asistencia", id: decodedText })
+    })
+    .then(r => r.json())
+    .then(res => {
+        if (res.status === "success") {
+            // Sonido de éxito (opcional)
+            if (typeof navigator.vibrate === "function") navigator.vibrate(100);
+
+            let color = res.estado === "TARDANZA" ? "red" : "green";
+            if (res.estado === "FUERA DE HORARIO") color = "gray";
+
+            // Mostramos quién entró y su estado
+            statusMsg.innerHTML = `
+                <div style="border: 2px solid ${color}; padding: 10px; border-radius: 10px; background: white;">
+                    <div style="font-size: 14px; color: #333;">${res.nombre}</div>
+                    <div style="font-size: 20px; font-weight: bold; color: ${color};">${res.estado}</div>
+                </div>
+            `;
+        } else {
+            statusMsg.innerHTML = "<span style='color:red'>❌ No registrado</span>";
+        }
+
+        // --- LA CLAVE PARA ESCANEO CONTINUO ---
+        // Esperamos 2.5 segundos para que veas el nombre y luego limpiamos para el SIGUIENTE
+        setTimeout(() => {
+            isProcessing = false; // Desbloqueamos para el siguiente escaneo
+            statusMsg.innerHTML = "Esperando siguiente código QR...";
+            // NO llamamos a html5QrCode.stop(), así la cámara sigue encendida
+        }, 2500); 
+    })
+    .catch(err => {
+        console.error(err);
+        isProcessing = false;
+        statusMsg.innerText = "Error de conexión. Reintentando...";
+    });
+}
 
     function guardarAlumno() {
         const id = document.getElementById('new-dni').value;

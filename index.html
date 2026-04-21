@@ -594,41 +594,37 @@ function toggleMenu() {
 function showSection(id, title) {
     // 1. Ocultar todas las secciones
     document.querySelectorAll('.section').forEach(s => {
-        s.style.display = 'none';
         s.classList.remove('active');
+        s.style.display = 'none';
     });
 
     // 2. Mostrar la sección seleccionada
-    const target = document.getElementById(id);
-    if (target) {
-        target.style.display = 'block';
-        target.classList.add('active');
+    const targetSection = document.getElementById(id);
+    if (targetSection) {
+        targetSection.classList.add('active');
+        targetSection.style.display = 'block';
     }
 
-    // 3. CORRECCIÓN DEFINITIVA DEL TÍTULO
+    // 3. Actualizar el título de la cabecera (VIEW-TITLE)
     const viewTitle = document.getElementById('view-title');
     if (viewTitle) {
-        // Si el título es undefined o no existe, ponemos uno por defecto
-        if (!title || title === undefined || title === 'undefined') {
-            if (id === 'escaneo' || id === 'reportes') {
-                viewTitle.innerText = 'Reporte de Asistencia';
-            } else if (id === 'agregar') {
-                viewTitle.innerText = 'Nuevo Estudiante';
-            } else if (id === 'impresion') {
-                viewTitle.innerText = 'Imprimir Carnets';
-            } else {
-                viewTitle.innerText = 'Sistema Adprint';
-            }
+        // Si no hay título, ponemos uno por defecto según el ID
+        if (!title || title === 'undefined') {
+            if (id === 'escaneo') viewTitle.innerText = 'Asistencia QR';
+            else if (id === 'reportes') viewTitle.innerText = 'Reporte de Asistencia';
+            else viewTitle.innerText = 'Sistema Adprint';
         } else {
             viewTitle.innerText = title;
         }
     }
 
     // 4. Cerrar el menú lateral
-    const menu = document.getElementById('sideMenu');
-    if (menu) menu.classList.remove('active');
+    const sideMenu = document.getElementById('sideMenu');
+    if (sideMenu) {
+        sideMenu.classList.remove('active');
+    }
 
-    // 5. Lógica de cámara y reportes
+    // 5. Lógica de Cámara
     if (id === 'escaneo') {
         iniciarCamara();
     } else {
@@ -636,16 +632,12 @@ function showSection(id, title) {
             html5QrCode.stop().catch(() => {});
         }
     }
-    if (id === 'reportes') generarEstadisticas();
+
+    // 6. Lógica de Reportes
+    if (id === 'reportes') {
+        generarEstadisticas();
+    }
 }
-    // 6. Lógica de carga de reporte
-    if (id === 'reportes') {
-        generarEstadisticas();
-    }
-    // 6. Lógica de reportes (Estadísticas)
-    if (id === 'reportes') {
-        generarEstadisticas();
-    }
 // Actualizar showSection para cargar estadísticas
 const originalShowSection = showSection;
 showSection = function(id) {

@@ -242,7 +242,7 @@
     </div>
 
 <script>
-    const scriptURL = 'https://script.google.com/macros/s/AKfycbztUh_qdtu6s0wzglf428SZOPcCoYg-vMK_qiuDvZoYIiyc5p7FcM5vZo--kan1k704IA/exec';
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbzk8Qvp5p4PUY_duyzx7sd40sZ7cRa5vD50tfJKxUfrM39f2JtHI2PvV7c5ycWp0ySUzQ/exec';
     const html5QrCode = new Html5Qrcode("reader");
 
     // --- LÓGICA SPLASH SCREEN ---
@@ -301,46 +301,16 @@
         document.getElementById('field-seccion').style.display = (type === 'seccion') ? 'flex' : 'none';
     }
 
-    // --- MODIFICACIÓN: FUNCIÓN DE ESCANEO CON ESTADOS ---
-function onScanSuccess(decodedText) {
-    if (isProcessing) return;
-    isProcessing = true;
-
-    const msg = document.getElementById('status-msg');
-    msg.innerHTML = "<span style='color:var(--primary)'>⏳ Procesando...</span>";
-
-    fetch(scriptURL, {
-        method: 'POST',
-        body: JSON.stringify({ action: "asistencia", id: decodedText })
-    })
-    .then(r => r.json())
-    .then(res => {
-        if (res.status === "success") {
-            // Colores según el estado que envía el script
-            let color = "#28a745"; // Verde (INGRESO / SALIDA)
-            if (res.estado === "TARDANZA") color = "#dc3545"; // Rojo
-            if (res.estado === "FUERA DE HORARIO") color = "#6c757d"; // Gris
-
-            msg.innerHTML = `
-                <div style="border: 2px solid ${color}; padding: 10px; border-radius: 10px; background: white;">
-                    <div style="font-size: 14px; color: #333;">${res.nombre}</div>
-                    <div style="font-size: 22px; font-weight: bold; color: ${color};">${res.estado}</div>
-                </div>
-            `;
-        } else {
-            msg.innerHTML = "<span style='color:#dc3545'>❌ No encontrado</span>";
-        }
-        // Espera 4 segundos y limpia el mensaje para el siguiente
-        setTimeout(() => { 
-            isProcessing = false; 
-            msg.innerHTML = "Esperando código QR..."; 
-        }, 4000);
-    })
-    .catch(() => {
-        msg.innerHTML = "Error de conexión";
-        isProcessing = false;
-    });
-}
+    function onScanSuccess(dni) {
+        const est = document.getElementById('status-select').value;
+        html5QrCode.stop().then(() => {
+            fetch(scriptURL, {
+                method: 'POST',
+                body: JSON.stringify({ action: 'asistencia', id: dni, estado: est })
+            })
+            .then(r => r.text()).then(m => { alert(m); location.reload(); });
+        });
+    }
 
     function guardarAlumno() {
         const id = document.getElementById('new-dni').value;

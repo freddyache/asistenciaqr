@@ -593,38 +593,42 @@ function toggleMenu() {
 function showSection(id, title) {
     // 1. Ocultar todas las secciones
     document.querySelectorAll('.section').forEach(s => {
+        s.style.display = 'none';
         s.classList.remove('active');
-        s.style.display = 'none'; // Aseguramos que se oculte
     });
 
     // 2. Mostrar la sección seleccionada
     const target = document.getElementById(id);
     if (target) {
+        target.style.display = 'block';
         target.classList.add('active');
-        target.style.display = 'block'; // Aseguramos que se muestre
     }
 
-    // 3. Cambiar el título en la cabecera (si existe el elemento)
+    // 3. CAMBIO DE TÍTULO EN LA BARRA AZUL SUPERIOR
+    // Aquí es donde evitamos que diga "Asistencia QR" en reportes
     const viewTitle = document.getElementById('view-title');
-    if (viewTitle && title) {
-        viewTitle.innerText = title;
+    if (viewTitle) {
+        viewTitle.innerText = title; 
     }
 
-    // 4. CERRAR EL MENÚ LATERAL
+    // 4. Cerrar el menú lateral
     const menu = document.getElementById('sideMenu');
-    if (menu) {
-        menu.classList.remove('active');
-    }
+    if (menu) menu.classList.remove('active');
 
-    // 5. Lógica de la cámara (Escáner)
+    // 5. Lógica de cámara
     if (id === 'escaneo') {
         iniciarCamara();
     } else {
-        // Si salimos de escaneo, detenemos la cámara para no gastar batería
         if (typeof html5QrCode !== 'undefined' && html5QrCode.isScanning) {
             html5QrCode.stop().catch(() => {});
         }
     }
+
+    // 6. Lógica de carga de reporte
+    if (id === 'reportes') {
+        generarEstadisticas();
+    }
+}
 
     // 6. Lógica de reportes (Estadísticas)
     if (id === 'reportes') {

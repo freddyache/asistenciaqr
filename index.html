@@ -301,16 +301,24 @@
         document.getElementById('field-seccion').style.display = (type === 'seccion') ? 'flex' : 'none';
     }
 
-    function onScanSuccess(dni) {
-        const est = document.getElementById('status-select').value;
-        html5QrCode.stop().then(() => {
-            fetch(scriptURL, {
-                method: 'POST',
-                body: JSON.stringify({ action: 'asistencia', id: dni, estado: est })
-            })
-            .then(r => r.text()).then(m => { alert(m); location.reload(); });
-        });
-    }
+    function onScanSuccess(decodedText) {
+    if (isProcessing) return;
+    isProcessing = true;
+
+    // Enviamos el DNI al servidor
+    fetch(scriptURL, {
+        method: 'POST',
+        body: JSON.stringify({ 
+            action: "asistencia", // El servidor busca esta palabra para guardar
+            id: decodedText 
+        })
+    })
+    .then(r => r.json())
+    .then(res => {
+        // ... (aquí va tu código para mostrar el nombre y estado en pantalla)
+        isProcessing = false; 
+    });
+}
 
     function guardarAlumno() {
         const id = document.getElementById('new-dni').value;

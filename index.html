@@ -583,7 +583,40 @@ function generarEstadisticas() {
         document.getElementById('status-msg').innerText = "Error al conectar con el servidor de reportes.";
     });
 }
+// Función para abrir y cerrar el menú manualmente
+function toggleMenu() {
+    const menu = document.getElementById('sideMenu');
+    menu.classList.toggle('active');
+}
 
+// Función para cambiar de sección y CERRAR el menú
+function showSection(id, title) {
+    // 1. Cambiar visibilidad de secciones
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    const target = document.getElementById(id);
+    if (target) target.classList.add('active');
+
+    // 2. Cambiar el título
+    document.getElementById('view-title').innerText = title;
+
+    // 3. CERRAR EL MENÚ (Esto es lo que faltaba)
+    const menu = document.getElementById('sideMenu');
+    menu.classList.remove('active');
+
+    // 4. Lógica de cámara
+    if (id === 'escaneo') {
+        iniciarCamara();
+    } else {
+        if (typeof html5QrCode !== 'undefined') {
+            html5QrCode.stop().catch(() => {});
+        }
+    }
+
+    // 5. Lógica de reportes
+    if (id === 'reportes') {
+        generarEstadisticas();
+    }
+}
 // Asegurar que cargue cuando se abra la sección
 function showSection(id) {
     document.querySelectorAll('.section').forEach(s => s.style.display = 'none');

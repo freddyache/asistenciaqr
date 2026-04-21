@@ -22,7 +22,29 @@
             justify-content: center;
             overflow-x: hidden;
         }
+/* --- ESTILOS ADICIONALES PARA REPORTES --- */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+    gap: 10px;
+    margin-bottom: 20px;
+}
+.stat-card {
+    padding: 15px 10px;
+    border-radius: 12px;
+    text-align: center;
+    color: white;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+.stat-card span { display: block; font-size: 22px; font-weight: bold; }
+.stat-card label { color: rgba(255,255,255,0.8); font-size: 11px; margin: 0; }
 
+.dist-bar-container { margin-top: 20px; background: #eee; border-radius: 10px; height: 25px; overflow: hidden; display: flex; }
+.dist-bar { height: 100%; transition: width 0.5s ease; }
+
+.legend-item { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; font-size: 13px; }
+.dot { width: 12px; height: 12px; border-radius: 3px; }
+        
         /* --- MENÚ HAMBURGUESA --- */
         .menu-btn {
             position: fixed;
@@ -150,7 +172,38 @@
             <div class="menu-item" onclick="showSection('escaneo')">🏠 Escáner Asistencia</div>
             <div class="menu-item" onclick="showSection('agregar')">👤 Agregar Estudiante</div>
             <div class="menu-item" onclick="showSection('impresion')">🪪 Impresión de Carnets</div>
+            <div class="menu-item" onclick="showSection('reportes')">📊 Reporte Estadístico</div>
         </div>
+        <div id="reportes" class="section">
+    <div class="form-group">
+        <label>Rango de Reporte:</label>
+        <select id="r-rango" class="form-control" onchange="generarEstadisticas()">
+            <option value="diario">Hoy</option>
+            <option value="semanal">Semanal</option>
+            <option value="mensual">Mensual</option>
+        </select>
+    </div>
+
+    <div class="stats-grid">
+        <div class="stat-card" style="background: #4a90e2;"> <span id="kpi-total">0</span> <label>Alumnos</label> </div>
+        <div class="stat-card" style="background: #2ecc71;"> <span id="kpi-puntual">0</span> <label>Puntuales</label> </div>
+        <div class="stat-card" style="background: #f39c12;"> <span id="kpi-tardanza">0</span> <label>Tardanzas</label> </div>
+        <div class="stat-card" style="background: #e74c3c;"> <span id="kpi-ausente">0</span> <label>Ausencias</label> </div>
+    </div>
+
+    <label>DISTRIBUCIÓN P / T / A</label>
+    <div class="dist-bar-container">
+        <div id="bar-p" class="dist-bar" style="background: #2ecc71; width: 0%"></div>
+        <div id="bar-t" class="dist-bar" style="background: #f39c12; width: 0%"></div>
+        <div id="bar-a" class="dist-bar" style="background: #e74c3c; width: 0%"></div>
+    </div>
+
+    <div style="margin-top: 20px;">
+        <div class="legend-item"><div class="dot" style="background:#2ecc71"></div> Puntual: <b id="pct-p">0%</b> (<span id="cnt-p">0</span>)</div>
+        <div class="legend-item"><div class="dot" style="background:#f39c12"></div> Tardanza: <b id="pct-t">0%</b> (<span id="cnt-t">0</span>)</div>
+        <div class="legend-item"><div class="dot" style="background:#e74c3c"></div> Ausente: <b id="pct-a">0%</b> (<span id="cnt-a">0</span>)</div>
+    </div>
+</div>
         <div class="overlay" id="overlay" onclick="toggleMenu()"></div>
 
         <div class="container">
@@ -242,7 +295,7 @@
     </div>
 
 <script>
-    const scriptURL = 'https://script.google.com/macros/s/AKfycbyHSSbglC7xtiA5S0WLWvyTOAwAxPFX8fR6C-lNBvYSiOcMD_JECGqk6A114qayFA68mw/exec';
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbygJV9BnX-07OFM5NUZjaII5jrDz-ShLpGsWJy1O2h3fWdWFo8VJUiyzKeA2dX32j8RQg/exec';
     const html5QrCode = new Html5Qrcode("reader");
 
     // --- LÓGICA SPLASH SCREEN ---
@@ -453,7 +506,47 @@
         document.getElementById('status-msg').innerText = "Error al iniciar cámara.";
     });
 }
+function generarEstadisticas() {
+    const rango = document.getElementById('r-rango').value;
+    
+    fetch(scriptURL, {
+        method: 'POST',
+        body: JSON.stringify({ action: 'obtenerEstadisticas', rango: rango })
+    })
+    .then(r => r.json())
+    .then(data => {
+        // Actualizar KPIs
+        document.getElementById('kpi-total').innerText = data.totalAlumnos;
+        document.getElementById('kpi-puntual').innerText = data.puntuales;
+        document.getElementById('kpi-tardanza').innerText = data.tardanzas;
+        document.getElementById('kpi-ausente').innerText = data.ausentes;
 
+        // Calcular porcentajes
+        const pP = (data.puntuales / data.totalAlumnos * 100).toFixed(1);
+        const pT = (data.tardanzas / data.totalAlumnos * 100).toFixed(1);
+        const pA = (data.ausentes / data.totalAlumnos * 100).toFixed(1);
+
+        // Actualizar Barras
+        document.getElementById('bar-p').style.width = pP + "%";
+        document.getElementById('bar-t').style.width = pT + "%";
+        document.getElementById('bar-a').style.width = pA + "%";
+
+        // Actualizar Leyenda
+        document.getElementById('pct-p').innerText = pP + "%";
+        document.getElementById('cnt-p').innerText = data.puntuales;
+        document.getElementById('pct-t').innerText = pT + "%";
+        document.getElementById('cnt-t').innerText = data.tardanzas;
+        document.getElementById('pct-a').innerText = pA + "%";
+        document.getElementById('cnt-a').innerText = data.ausentes;
+    });
+}
+
+// Actualizar showSection para cargar estadísticas
+const originalShowSection = showSection;
+showSection = function(id) {
+    originalShowSection(id);
+    if(id === 'reportes') generarEstadisticas();
+};
     function detenerCamara() { if(html5QrCode.isScanning) html5QrCode.stop(); }
 </script>
 </body>

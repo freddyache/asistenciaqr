@@ -313,7 +313,7 @@
     </div>
 
 <script>
-    const scriptURL = 'https://script.google.com/macros/s/AKfycbygJV9BnX-07OFM5NUZjaII5jrDz-ShLpGsWJy1O2h3fWdWFo8VJUiyzKeA2dX32j8RQg/exec';
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbz7zpU0MI2Ney64c8OKg18KDBNUsiDo8JPHJ1KM6-3L_pId68KWo91E--DNUiViaaeKNA/exec';
     const html5QrCode = new Html5Qrcode("reader");
 
     // --- LÓGICA SPLASH SCREEN ---
@@ -527,40 +527,41 @@
 function generarEstadisticas() {
     const rango = document.getElementById('r-rango').value;
     
-    // Mostramos carga en los números
+    // Indicador de carga
     document.getElementById('kpi-total').innerText = "...";
 
     fetch(scriptURL, {
         method: 'POST',
+        headers: { 'Content-Type': 'text/plain' }, // Importante para evitar problemas de CORS
         body: JSON.stringify({ action: 'obtenerEstadisticas', rango: rango })
     })
     .then(r => r.json())
     .then(data => {
-        // Actualizar números
+        // Rellenar números
         document.getElementById('kpi-total').innerText = data.totalAlumnos;
         document.getElementById('kpi-puntual').innerText = data.puntuales;
         document.getElementById('kpi-tardanza').innerText = data.tardanzas;
         document.getElementById('kpi-ausente').innerText = data.ausentes;
 
-        // Calcular porcentajes para la barra
+        // Calcular porcentajes para las barras
         const total = data.totalAlumnos || 1;
         const pP = (data.puntuales / total * 100).toFixed(1);
         const pT = (data.tardanzas / total * 100).toFixed(1);
         const pA = (data.ausentes / total * 100).toFixed(1);
 
-        // Animar barras
+        // Animar las barras de color
         document.getElementById('bar-p').style.width = pP + "%";
         document.getElementById('bar-t').style.width = pT + "%";
         document.getElementById('bar-a').style.width = pA + "%";
 
-        // Textos de porcentaje
+        // Actualizar textos de porcentaje
         document.getElementById('pct-p').innerText = pP + "%";
         document.getElementById('pct-t').innerText = pT + "%";
         document.getElementById('pct-a').innerText = pA + "%";
     })
     .catch(err => {
-        console.error("Error al cargar estadísticas:", err);
-        alert("Error al conectar con el servidor de reportes.");
+        console.error("Error:", err);
+        document.getElementById('status-msg').innerText = "Error al conectar con el servidor de reportes.";
     });
 }
 

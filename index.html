@@ -435,46 +435,52 @@ window.onload = function() {
 
 // Actualiza tu función generarEstadisticas para enviar TODOS los filtros
 function generarEstadisticas() {
-    // Capturamos los valores justo en el momento del clic
-    const tipoFiltro = document.getElementById('rep-filtro-tipo').value;
+    const filtro = document.getElementById('rep-filtro-tipo').value;
+    const fechaVal = document.getElementById('r-fecha').value;
     
+    // Validación rápida: Si eliges fecha y no pones ninguna, avisar
+    if (filtro === 'fecha' && !fechaVal) {
+        alert("Por favor, seleccione una fecha válida.");
+        return;
+    }
+
     const datos = {
         action: 'obtenerEstadisticas',
-        filtro: tipoFiltro,
+        filtro: filtro,
         rango: document.getElementById('r-rango').value,
-        fecha: document.getElementById('r-fecha').value, // Formato yyyy-mm-dd
-        mes: document.getElementById('r-mes').value,     // Formato yyyy-mm
+        fecha: fechaVal,
+        mes: document.getElementById('r-mes').value,
         seccion: document.getElementById('r-seccion').value,
         dni: document.getElementById('r-dni').value
     };
 
-    // Mostrar estado de carga
-    document.getElementById('kpi-total').innerText = "...";
+    // Efecto visual de carga
+    document.getElementById('kpi-total').innerText = "⏳";
 
-    fetch(scriptURL, { 
-        method: 'POST', 
-        body: JSON.stringify(datos) 
-    })
+    fetch(scriptURL, { method: 'POST', body: JSON.stringify(datos) })
     .then(r => r.json())
     .then(data => {
-        // Actualizar los KPIs en pantalla
-        document.getElementById('kpi-total').innerText = data.totalAlumnos;
-        document.getElementById('kpi-puntual').innerText = data.puntuales;
-        document.getElementById('kpi-tardanza').innerText = data.tardanzas;
-        document.getElementById('kpi-ausente').innerText = data.ausentes;
-
-        // Actualizar barra de colores
-        const total = data.totalAlumnos || 1;
-        document.getElementById('bar-p').style.width = (data.puntuales / total * 100) + "%";
-        document.getElementById('bar-t').style.width = (data.tardanzas / total * 100) + "%";
-        document.getElementById('bar-a').style.width = (data.ausentes / total * 100) + "%";
+        actualizarTablero(data); // Llama a una función que pinte los números y barras
     })
-    .catch(err => {
-        console.error(err);
-        alert("Error al obtener los datos. Verifique la conexión.");
-    });
+    .catch(err => alert("Error de conexión con Adprint"));
 }
 
+function actualizarTablero(data) {
+    document.getElementById('kpi-total').innerText = data.totalAlumnos;
+    document.getElementById('kpi-puntual').innerText = data.puntuales;
+    document.getElementById('kpi-tardanza').innerText = data.tardanzas;
+    document.getElementById('kpi-ausente').innerText = data.ausentes;
+
+    const total = data.totalAlumnos || 1;
+    document.getElementById('bar-p').style.width = (data.puntuales / total * 100) + "%";
+    document.getElementById('bar-t').style.width = (data.tardanzas / total * 100) + "%";
+    document.getElementById('bar-a').style.width = (data.ausentes / total * 100) + "%";
+    
+    // Actualizar leyendas de porcentaje
+    document.getElementById('pct-p').innerText = (data.puntuales / total * 100).toFixed(1) + "%";
+    document.getElementById('pct-t').innerText = (data.tardanzas / total * 100).toFixed(1) + "%";
+    document.getElementById('pct-a').innerText = (data.ausentes / total * 100).toFixed(1) + "%";
+}
     function onScanSuccess(decodedText) {
     if (isProcessing) return; // Evita escaneos múltiples del mismo código
     isProcessing = true;

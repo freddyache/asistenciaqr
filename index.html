@@ -342,7 +342,7 @@
     </div>
 
 <script>
-    const scriptURL = 'https://script.google.com/macros/s/AKfycbzs8yQ7pi6YX2ju3w1trRPpuAYr9_19O1D223KUGYiafTUU-fBY6-SbUZlAEgu0DA3Dlg/exec';
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbxiw9OwCz8SohUWifxkOPaxXoFaiDyQnXmv0WhjGm-2WdfdM3uIN8EkBuXJK-P7eTpplA/exec';
     const html5QrCode = new Html5Qrcode("reader");
 
    // --- LÓGICA SPLASH SCREEN (CORREGIDA) ---
@@ -437,6 +437,7 @@ window.onload = function() {
 function generarEstadisticas() {
     // 1. Capturamos los valores de los filtros en el momento del clic
     const filtroTipo = document.getElementById('rep-filtro-tipo').value;
+    const fechaSeleccionada = document.getElementById('r-fecha').value || new Date().toISOString().split('T')[0];
     const fechaCalendario = document.getElementById('r-fecha').value; // El input tipo date
 
     document.getElementById('kpi-total').innerText = "...";

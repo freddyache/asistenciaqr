@@ -436,47 +436,34 @@ window.onload = function() {
 // Actualiza tu función generarEstadisticas para enviar TODOS los filtros
 function generarEstadisticas() {
     const filtro = document.getElementById('rep-filtro-tipo').value;
-    const fechaInput = document.getElementById('r-fecha').value;
-    
-    // Si no hay fecha seleccionada, usamos la de hoy para evitar el error de 'undefined'
-    const hoy = new Date().toISOString().split('T')[0];
-    const fechaFinal = (filtro === 'fecha' && fechaInput) ? fechaInput : hoy;
+    const fechaSeleccionada = document.getElementById('r-fecha').value; // Captura el valor del calendario
 
     document.getElementById('kpi-total').innerText = "⏳";
 
     fetch(scriptURL, {
-        method: "POST",
-        body: JSON.stringify({
-            action: "obtenerEstadisticas",
+        method: 'POST',
+        body: JSON.stringify({ 
+            action: 'obtenerEstadisticas', 
             filtro: filtro,
-            fecha: fechaFinal,
+            fecha: fechaSeleccionada, // Enviamos la fecha elegida
             mes: document.getElementById('r-mes').value,
             seccion: document.getElementById('r-seccion').value,
             dni: document.getElementById('r-dni').value
         })
     })
-    .then(response => response.json())
+    .then(r => r.json())
     .then(data => {
-        // Rellenar números
+        // Actualizar los cuadros de texto
         document.getElementById('kpi-total').innerText = data.totalAlumnos;
         document.getElementById('kpi-puntual').innerText = data.puntuales;
         document.getElementById('kpi-tardanza').innerText = data.tardanzas;
         document.getElementById('kpi-ausente').innerText = data.ausentes;
 
-        // Actualizar barras
+        // Actualizar las barras y porcentajes
         const total = data.totalAlumnos || 1;
         document.getElementById('bar-p').style.width = (data.puntuales / total * 100) + "%";
         document.getElementById('bar-t').style.width = (data.tardanzas / total * 100) + "%";
         document.getElementById('bar-a').style.width = (data.ausentes / total * 100) + "%";
-        
-        // Actualizar porcentajes
-        document.getElementById('pct-p').innerText = (data.puntuales / total * 100).toFixed(1) + "%";
-        document.getElementById('pct-t').innerText = (data.tardanzas / total * 100).toFixed(1) + "%";
-        document.getElementById('pct-a').innerText = (data.ausentes / total * 100).toFixed(1) + "%";
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        document.getElementById('kpi-total').innerText = "Error";
     });
 }
 function actualizarTablero(data) {

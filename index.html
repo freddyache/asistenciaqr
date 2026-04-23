@@ -342,7 +342,7 @@
     </div>
 
 <script>
-    const scriptURL = 'https://script.google.com/macros/s/AKfycbx8CvpHWfZ2I6KBZpJCACuzo4fLG_z-XzWP5zu5X0hiTv-z9eM6CE_RW4ZiOxa6etA25A/exec';
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbxz4QKnEWI0AV--My4wXpGknHfeNUorBFsW0wL115IP7TNxe_Hcf8a1Ids8k8rgKHpIMw/exec';
     const html5QrCode = new Html5Qrcode("reader");
 
    // --- LÓGICA SPLASH SCREEN (CORREGIDA) ---
@@ -435,56 +435,47 @@ window.onload = function() {
 
 // Actualiza tu función generarEstadisticas para enviar TODOS los filtros
 function generarEstadisticas() {
-    // 1. Forzar la captura de valores actuales de los inputs
     const filtro = document.getElementById('rep-filtro-tipo').value;
-    const fecha = document.getElementById('r-fecha').value;
-    const mes = document.getElementById('r-mes').value;
-    const seccion = document.getElementById('r-seccion').value;
-    const dni = document.getElementById('r-dni').value;
-    const rango = document.getElementById('r-rango').value;
+    const fechaInput = document.getElementById('r-fecha').value;
+    
+    // Si no hay fecha seleccionada, usamos la de hoy para evitar el error de 'undefined'
+    const hoy = new Date().toISOString().split('T')[0];
+    const fechaFinal = (filtro === 'fecha' && fechaInput) ? fechaInput : hoy;
 
-    // Indicador visual de carga
-    document.getElementById('kpi-total').innerText = "...";
+    document.getElementById('kpi-total').innerText = "⏳";
 
     fetch(scriptURL, {
-        method: 'POST',
-        mode: 'no-cors', // Añade esto si tienes problemas de permisos
-        body: JSON.stringify({ 
-            action: 'obtenerEstadisticas', 
+        method: "POST",
+        body: JSON.stringify({
+            action: "obtenerEstadisticas",
             filtro: filtro,
-            rango: rango,
-            fecha: fecha,
-            mes: mes,
-            seccion: seccion,
-            dni: dni
+            fecha: fechaFinal,
+            mes: document.getElementById('r-mes').value,
+            seccion: document.getElementById('r-seccion').value,
+            dni: document.getElementById('r-dni').value
         })
     })
-    .then(r => r.json())
+    .then(response => response.json())
     .then(data => {
-        // 2. Actualizar Números (KPIs)
+        // Rellenar números
         document.getElementById('kpi-total').innerText = data.totalAlumnos;
         document.getElementById('kpi-puntual').innerText = data.puntuales;
         document.getElementById('kpi-tardanza').innerText = data.tardanzas;
         document.getElementById('kpi-ausente').innerText = data.ausentes;
 
-        // 3. Actualizar Barras de Colores
+        // Actualizar barras
         const total = data.totalAlumnos || 1;
-        const pP = (data.puntuales / total * 100).toFixed(1);
-        const pT = (data.tardanzas / total * 100).toFixed(1);
-        const pA = (data.ausentes / total * 100).toFixed(1);
-
-        document.getElementById('bar-p').style.width = pP + "%";
-        document.getElementById('bar-t').style.width = pT + "%";
-        document.getElementById('bar-a').style.width = pA + "%";
-
-        // 4. Actualizar Leyendas
-        document.getElementById('pct-p').innerText = pP + "%";
-        document.getElementById('pct-t').innerText = pT + "%";
-        document.getElementById('pct-a').innerText = pA + "%";
+        document.getElementById('bar-p').style.width = (data.puntuales / total * 100) + "%";
+        document.getElementById('bar-t').style.width = (data.tardanzas / total * 100) + "%";
+        document.getElementById('bar-a').style.width = (data.ausentes / total * 100) + "%";
+        
+        // Actualizar porcentajes
+        document.getElementById('pct-p').innerText = (data.puntuales / total * 100).toFixed(1) + "%";
+        document.getElementById('pct-t').innerText = (data.tardanzas / total * 100).toFixed(1) + "%";
+        document.getElementById('pct-a').innerText = (data.ausentes / total * 100).toFixed(1) + "%";
     })
-    .catch(err => {
-        console.error("Error:", err);
-        // Si hay error, intentamos recuperar los datos
+    .catch(error => {
+        console.error('Error:', error);
         document.getElementById('kpi-total').innerText = "Error";
     });
 }

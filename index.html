@@ -178,13 +178,42 @@
     <h2 style="text-align: center; color: var(--dark);">📊 Reporte de Asistencia</h2>
     
     <div class="card">
-        <label>Seleccionar Periodo:</label>
-        <select id="r-rango" class="input-field" onchange="generarEstadisticas()">
-            <option value="diario">Hoy (Vista Diaria)</option>
-            <option value="semanal">Semanal (7 días)</option>
-            <option value="mensual">Mensual (30 días)</option>
-        </select>
+    <label>Filtrar por:</label>
+    <select id="rep-filtro-tipo" class="input-field" onchange="toggleFiltrosDetallados()">
+        <option value="general">Vista General (Hoy/Semana/Mes)</option>
+        <option value="fecha">Fecha Específica</option>
+        <option value="mes">Mes Completo</option>
+        <option value="seccion">Grado y Sección</option>
+        <option value="alumno">DNI de Alumno</option>
+    </select>
+
+    <div id="f-rango" class="f-grupo">
+        <label>Periodo:</label>
+        <select id="r-rango" class="input-field"><option value="diario">Hoy</option><option value="semanal">Semanal</option><option value="mensual">Mensual</option></select>
     </div>
+
+    <div id="f-fecha" class="f-grupo" style="display:none;">
+        <label>Seleccione Fecha:</label>
+        <input type="date" id="r-fecha" class="input-field">
+    </div>
+
+    <div id="f-mes" class="f-grupo" style="display:none;">
+        <label>Seleccione Mes:</label>
+        <input type="month" id="r-mes" class="input-field">
+    </div>
+
+    <div id="f-seccion" class="f-grupo" style="display:none;">
+        <label>Grado y Sección:</label>
+        <input type="text" id="r-seccion" class="input-field" placeholder="Ej: 5to A">
+    </div>
+
+    <div id="f-alumno" class="f-grupo" style="display:none;">
+        <label>DNI del Alumno:</label>
+        <input type="number" id="r-dni" class="input-field" placeholder="Ingrese DNI">
+    </div>
+
+    <button class="btn-primario" onclick="generarEstadisticas()" style="margin-top:10px;">Consultar Reporte</button>
+</div>
 
     <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 15px;">
         <div style="background: #4a90e2; color: white; padding: 15px; border-radius: 12px; text-align: center;">
@@ -313,7 +342,7 @@
     </div>
 
 <script>
-    const scriptURL = 'https://script.google.com/macros/s/AKfycbyXp_QApfP1zwHex1a9JN6-_zzBHebOM2hDXEK33eRH1aj-RVWaaW7gmI9Rkz6eEeprwQ/exec';
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbyR31YQd3tu91HIhxwawyI5liHOp0y65AkJ1haawpFTbI1TAlnoW-Q5eyzWCJhR5ixPPQ/exec';
     const html5QrCode = new Html5Qrcode("reader");
 
    // --- LÓGICA SPLASH SCREEN (CORREGIDA) ---
@@ -391,6 +420,37 @@ window.onload = function() {
         document.getElementById('field-dni').style.display = (type === 'individual') ? 'block' : 'none';
         document.getElementById('field-seccion').style.display = (type === 'seccion') ? 'flex' : 'none';
     }
+    function toggleFiltrosDetallados() {
+    const tipo = document.getElementById('rep-filtro-tipo').value;
+    // Ocultar todos
+    document.querySelectorAll('.f-grupo').forEach(div => div.style.display = 'none');
+    
+    // Mostrar el seleccionado
+    if(tipo === 'general') document.getElementById('f-rango').style.display = 'block';
+    if(tipo === 'fecha') document.getElementById('f-fecha').style.display = 'block';
+    if(tipo === 'mes') document.getElementById('f-mes').style.display = 'block';
+    if(tipo === 'seccion') document.getElementById('f-seccion').style.display = 'block';
+    if(tipo === 'alumno') document.getElementById('f-alumno').style.display = 'block';
+}
+
+// Actualiza tu función generarEstadisticas para enviar TODOS los filtros
+function generarEstadisticas() {
+    const datos = {
+        action: 'obtenerEstadisticas',
+        filtro: document.getElementById('rep-filtro-tipo').value,
+        rango: document.getElementById('r-rango').value,
+        fecha: document.getElementById('r-fecha').value,
+        mes: document.getElementById('r-mes').value,
+        seccion: document.getElementById('r-seccion').value,
+        dni: document.getElementById('r-dni').value
+    };
+
+    fetch(scriptURL, { method: 'POST', body: JSON.stringify(datos) })
+    .then(r => r.json())
+    .then(data => {
+        // ... (aquí va tu lógica actual para pintar los KPIs y la barra de colores)
+    });
+}
 
     function onScanSuccess(decodedText) {
     if (isProcessing) return; // Evita escaneos múltiples del mismo código

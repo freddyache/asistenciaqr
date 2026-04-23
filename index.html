@@ -342,7 +342,7 @@
     </div>
 
 <script>
-    const scriptURL = 'https://script.google.com/macros/s/AKfycbyR31YQd3tu91HIhxwawyI5liHOp0y65AkJ1haawpFTbI1TAlnoW-Q5eyzWCJhR5ixPPQ/exec';
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbwN-qqd66gQkbVPTbm5pBVyJuAsSCo4CpvB8aKd_yYOH7VXrvjKuCmRTmFBvFdfhZFJBw/exec';
     const html5QrCode = new Html5Qrcode("reader");
 
    // --- LÓGICA SPLASH SCREEN (CORREGIDA) ---
@@ -435,20 +435,43 @@ window.onload = function() {
 
 // Actualiza tu función generarEstadisticas para enviar TODOS los filtros
 function generarEstadisticas() {
+    // Capturamos los valores justo en el momento del clic
+    const tipoFiltro = document.getElementById('rep-filtro-tipo').value;
+    
     const datos = {
         action: 'obtenerEstadisticas',
-        filtro: document.getElementById('rep-filtro-tipo').value,
+        filtro: tipoFiltro,
         rango: document.getElementById('r-rango').value,
-        fecha: document.getElementById('r-fecha').value,
-        mes: document.getElementById('r-mes').value,
+        fecha: document.getElementById('r-fecha').value, // Formato yyyy-mm-dd
+        mes: document.getElementById('r-mes').value,     // Formato yyyy-mm
         seccion: document.getElementById('r-seccion').value,
         dni: document.getElementById('r-dni').value
     };
 
-    fetch(scriptURL, { method: 'POST', body: JSON.stringify(datos) })
+    // Mostrar estado de carga
+    document.getElementById('kpi-total').innerText = "...";
+
+    fetch(scriptURL, { 
+        method: 'POST', 
+        body: JSON.stringify(datos) 
+    })
     .then(r => r.json())
     .then(data => {
-        // ... (aquí va tu lógica actual para pintar los KPIs y la barra de colores)
+        // Actualizar los KPIs en pantalla
+        document.getElementById('kpi-total').innerText = data.totalAlumnos;
+        document.getElementById('kpi-puntual').innerText = data.puntuales;
+        document.getElementById('kpi-tardanza').innerText = data.tardanzas;
+        document.getElementById('kpi-ausente').innerText = data.ausentes;
+
+        // Actualizar barra de colores
+        const total = data.totalAlumnos || 1;
+        document.getElementById('bar-p').style.width = (data.puntuales / total * 100) + "%";
+        document.getElementById('bar-t').style.width = (data.tardanzas / total * 100) + "%";
+        document.getElementById('bar-a').style.width = (data.ausentes / total * 100) + "%";
+    })
+    .catch(err => {
+        console.error(err);
+        alert("Error al obtener los datos. Verifique la conexión.");
     });
 }
 

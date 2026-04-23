@@ -342,7 +342,7 @@
     </div>
 
 <script>
-    const scriptURL = 'https://script.google.com/macros/s/AKfycbxz4QKnEWI0AV--My4wXpGknHfeNUorBFsW0wL115IP7TNxe_Hcf8a1Ids8k8rgKHpIMw/exec';
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbzs8yQ7pi6YX2ju3w1trRPpuAYr9_19O1D223KUGYiafTUU-fBY6-SbUZlAEgu0DA3Dlg/exec';
     const html5QrCode = new Html5Qrcode("reader");
 
    // --- LÓGICA SPLASH SCREEN (CORREGIDA) ---
@@ -435,17 +435,20 @@ window.onload = function() {
 
 // Actualiza tu función generarEstadisticas para enviar TODOS los filtros
 function generarEstadisticas() {
-    const filtro = document.getElementById('rep-filtro-tipo').value;
-    const fechaSeleccionada = document.getElementById('r-fecha').value; // Captura el valor del calendario
+    // 1. Capturamos los valores de los filtros en el momento del clic
+    const filtroTipo = document.getElementById('rep-filtro-tipo').value;
+    const fechaCalendario = document.getElementById('r-fecha').value; // El input tipo date
 
-    document.getElementById('kpi-total').innerText = "⏳";
+    document.getElementById('kpi-total').innerText = "...";
 
     fetch(scriptURL, {
         method: 'POST',
         body: JSON.stringify({ 
             action: 'obtenerEstadisticas', 
-            filtro: filtro,
-            fecha: fechaSeleccionada, // Enviamos la fecha elegida
+            filtro: filtroTipo,
+            // Si el filtro es 'fecha', enviamos la del calendario. 
+            // Si no, enviamos la de hoy por defecto.
+            fecha: (filtroTipo === 'fecha') ? fechaCalendario : new Date().toISOString().split('T')[0],
             mes: document.getElementById('r-mes').value,
             seccion: document.getElementById('r-seccion').value,
             dni: document.getElementById('r-dni').value
@@ -453,20 +456,19 @@ function generarEstadisticas() {
     })
     .then(r => r.json())
     .then(data => {
-        // Actualizar los cuadros de texto
+        // Actualizamos los números en la pantalla
         document.getElementById('kpi-total').innerText = data.totalAlumnos;
         document.getElementById('kpi-puntual').innerText = data.puntuales;
         document.getElementById('kpi-tardanza').innerText = data.tardanzas;
         document.getElementById('kpi-ausente').innerText = data.ausentes;
 
-        // Actualizar las barras y porcentajes
+        // Actualizamos las barras de colores
         const total = data.totalAlumnos || 1;
         document.getElementById('bar-p').style.width = (data.puntuales / total * 100) + "%";
         document.getElementById('bar-t').style.width = (data.tardanzas / total * 100) + "%";
         document.getElementById('bar-a').style.width = (data.ausentes / total * 100) + "%";
     });
-}
-function actualizarTablero(data) {
+}function actualizarTablero(data) {
     document.getElementById('kpi-total').innerText = data.totalAlumnos;
     document.getElementById('kpi-puntual').innerText = data.puntuales;
     document.getElementById('kpi-tardanza').innerText = data.tardanzas;

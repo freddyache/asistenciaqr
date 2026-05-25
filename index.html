@@ -1,3 +1,215 @@
+
+Conversación con Gemini
+basado en esos dos codigo, necesito que haga el reporte de asitencia por grado y seccion. adjunto codiogs, hoja de calculo,
+
+Para lograr que el reporte de asistencia se agrupe por grado y sección, necesitamos hacer modificaciones en ambos lados: el Backend (Google Apps Script) para que procese y agrupe los datos, y el Frontend (HTML/JavaScript) para que pinte esos datos de forma limpia y ordenada.
+
+Revisando tus archivos, en codigo script.txt la acción "obtenerEstadisticas" solo devuelve totales generales. Vamos a actualizarla para que cruce la información de datos_estudiantes (donde están el grado y la sección) con las asistencias registradas en guardar_datos.
+
+Aquí tienes las modificaciones exactas que debes realizar:
+
+1. Modificación en el Backend (codigo script.txt)
+Busca en tu archivo de Google Apps Script la sección donde manejas if (action === "obtenerEstadisticas") y reemplázala por completo con este bloque. Este código agrupa los alumnos matriculados y sus asistencias por Grado y Sección.
+
+JavaScript
+    // --- ACCIÓN: ESTADÍSTICAS PARA EL REPORTE POR GRADO Y SECCIÓN ---
+    if (action === "obtenerEstadisticas") {
+      const rawAsistencias = sheetGuardar.getDataRange().getValues();
+      const rawEstudiantes = sheetEst.getDataRange().getValues();
+
+      if (rawEstudiantes.length <= 1) {
+        return ContentService.createTextOutput(JSON.stringify({ 
+          totalAlumnos: 0, totalAsistencias: 0, asistenciasHoy: 0, reportesPorGrado: {} 
+        })).setMimeType(ContentService.MimeType.JSON);
+      }
+
+      // 1. Mapear estudiantes para saber su Grado y Sección mediante su DNI
+      // Asumiendo: est[0] = DNI, est[3] = Grado (ej. "1° A" o "5°"), est[4] = Sección (si aplica)
+      // Si el grado ya incluye la sección (ej: "1° A"), usaremos est[3] como la clave de agrupación.
+      const mapaEstudiantes = {};
+      for (let i = 1; i < rawEstudiantes.length; i++) {
+        const est = rawEstudiantes[i];
+        const dni = String(est[0]).trim();
+        const gradoSeccion = String(est[3] || "Sin Grado").trim(); 
+        
+        mapaEstudiantes[dni] = {
+          nombre: est[1],
+          gradoSeccion: gradoSeccion
+        };
+      }
+
+      const totalAlumnos = Object.keys(mapaEstudiantes).length;
+      const totalAsistencias = rawAsistencias.length > 1 ? rawAsistencias.length - 1 : 0;
+
+      // 2. Calcular asistencias de HOY
+      const hoyStr = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), "yyyy-MM-dd");
+      let asistenciasHoy = 0;
+
+      // 3. Estructura para acumular datos por Grado/Sección
+      // { "1° A": { matriculados: X, asistenciasHoy: Y, totalAsistenciasHistoricas: Z } }
+      const desgloseGrados = {};
+
+      // Inicializar los grados con los alumnos matriculados
+      Object.values(mapaEstudiantes).forEach(e => {
+        if (!desgloseGrados[e.gradoSeccion]) {
+          desgloseGrados[e.gradoSeccion] = { matriculados: 0, asistenciasHoy: 0 };
+        }
+        desgloseGrados[e.gradoSeccion].matriculados++;
+      });
+
+      // Procesar asistencias
+      for (let j = 1; j < rawAsistencias.length; j++) {
+        const fila = rawAsistencias[j];
+        const dniAsistencia = String(fila[0]).trim();
+        const fechaAsistencia = fila[2]; // Asumiendo columna 3 es Fecha/Hora
+
+        let fechaFmt = "";
+        if (fechaAsistencia instanceof Date) {
+          fechaFmt = Utilities.formatDate(fechaAsistencia, Session.getScriptTimeZone(), "yyyy-MM-dd");
+        } else {
+          fechaFmt = String(fechaAsistencia).split("T")[0];
+        }
+
+        const esHoy = (fechaFmt === hoyStr);
+        if (esHoy) asistenciasHoy++;
+
+        // Si el estudiante existe en el padrón, sumamos a su sección
+        if (mapaEstudiantes[dniAsistencia]) {
+          const grSec = mapaEstudiantes[dniAsistencia].gradoSeccion;
+          if (!desgloseGrados[grSec]) {
+            desgloseGrados[grSec] = { matriculados: 0, asistenciasHoy: 0 };
+          }
+          if (esHoy) {
+            desgloseGrados[grSec].asistenciasHoy++;
+          }
+        }
+      }
+
+      return ContentService.createTextOutput(JSON.stringify({
+        totalAlumnos: totalAlumnos,
+        totalAsistencias: totalAsistencias,
+        asistenciasHoy: asistenciasHoy,
+        reportesPorGrado: desgloseGrados
+      })).setMimeType(ContentService.MimeType.JSON);
+    }
+2. Modificación en el Frontend (codigo index.txt)
+En tu archivo HTML, busca la función generarEstadisticas(). Actualmente solo actualiza las tres tarjetas superiores (total-alumnos, total-asistencias, asistencias-hoy).
+
+Vamos a reemplazar esa función para que además cree una tabla dinámica justo debajo de las tarjetas, mostrando el desglose detallado de cada grado y sección con su respectivo porcentaje de asistencia del día.
+
+Paso A: Preparar el contenedor en el HTML
+Asegúrate de que en la sección de <section id="reportes" ...> tengas un lugar donde meter la tabla. Busca dónde termina el </div> de la clase stats-grid y añade este contenedor:
+
+HTML
+<div class="table-container" style="margin-top: 20px; background: white; padding: 15px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
+    <h3 style="color: var(--dark); margin-top: 0;">Asistencia del Día por Grado y Sección</h3>
+    <table id="tabla-grados" style="width: 100%; border-collapse: collapse; text-align: left;">
+        <thead>
+            <tr style="background-color: var(--primary); color: white;">
+                <th style="padding: 10px; border-radius: 6px 0 0 6px;">Grado / Sección</th>
+                <th style="padding: 10px;">Matriculados</th>
+                <th style="padding: 10px;">Asistieron Hoy</th>
+                <th style="padding: 10px; border-radius: 0 6px 6px 0;">% Asistencia</th>
+            </tr>
+        </thead>
+        <tbody id="lista-reporte-grados">
+            </tbody>
+    </table>
+</div>
+Paso B: Reemplazar la función JavaScript generarEstadisticas()
+Busca la función en la etiqueta <script> de tu index.html y cámbiala por esta:
+
+JavaScript
+function generarEstadisticas() {
+    // Mostrar un estado de carga en la tabla
+    const tbody = document.getElementById('lista-reporte-grados');
+    if (tbody) {
+        tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding:20px;">Cargando reporte detallado...</td></tr>`;
+    }
+
+    fetch(WEB_APP_URL, {
+        method: 'POST',
+        mode: 'no-cors', // Nota: Si usas no-cors, la respuesta puede venir vacía en el cliente. 
+        // RECOMENDACIÓN: Si tienes problemas para leer los datos, quita 'mode: no-cors' 
+        // y asegúrate de que tu Apps Script devuelva las cabeceras CORS correctas.
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'obtenerEstadisticas' })
+    })
+    // Como tu script original maneja la petición de esta forma debido a las limitaciones de Apps Script:
+    // Si estás usando una petición normal (con CORS permitido), usa esta estructura:
+    .then(response => response.json())
+    .then(data => {
+        // 1. Renderizar tarjetas principales
+        document.getElementById('total-alumnos').innerText = data.totalAlumnos || 0;
+        document.getElementById('total-asistencias').innerText = data.totalAsistencias || 0;
+        document.getElementById('asistencias-hoy').innerText = data.asistenciasHoy || 0;
+
+        // 2. Renderizar tabla por Grado y Sección
+        if (tbody) {
+            tbody.innerHTML = ''; // Limpiar el estado de carga
+            
+            const grados = data.reportesPorGrado || {};
+            const clavesGrados = Object.keys(grados).sort(); // Ordenar grados alfabéticamente
+
+            if (clavesGrados.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding:20px;">No hay alumnos registrados para generar el desglose.</td></tr>`;
+                return;
+            }
+
+            clavesGrados.forEach(grado => {
+                const info = grados[grado];
+                const matriculados = info.matriculados || 0;
+                const asistieron = info.asistenciasHoy || 0;
+                
+                // Calcular porcentaje de asistencia de hoy por grado
+                const porcentaje = matriculados > 0 ? ((asistieron / matriculados) * 100).toFixed(1) : 0;
+
+                const tr = document.createElement('tr');
+                tr.style.borderBottom = '1px solid #eee';
+                tr.innerHTML = `
+                    <td style="padding: 12px 10px; font-weight: bold; color: var(--dark);">${grado}</td>
+                    <td style="padding: 12px 10px;">${matriculados}</td>
+                    <td style="padding: 12px 10px;"><span style="background: #e1f5fe; color: #0288d1; padding: 4px 8px; border-radius: 12px; font-weight: bold;">${asistieron}</span></td>
+                    <td style="padding: 12px 10px; font-weight: bold; color: ${porcentaje > 70 ? '#2e7d32' : '#c62828'};">${porcentaje}%</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+    })
+    .catch(error => {
+        console.error('Error al generar estadísticas:', error);
+        if (tbody) {
+            tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:red; padding:20px;">Error al cargar los datos del servidor.</td></tr>`;
+        }
+    });
+}
+⚠️ Nota sobre no-cors: En tu código original de index.txt veo que utilizas mode: 'no-cors' en las peticiones POST. Recuerda que no-cors hace que JavaScript no pueda leer el contenido de la respuesta (la devuelve opaca). Para que este reporte funcione correctamente leyendo el JSON de los grados, es ideal que el Apps Script tenga los permisos libres y quites el mode: 'no-cors' del fetch para que trabaje en modo estándar.
+
+Con estos cambios implementados, cada vez que entres a la sección "Reporte de Asistencia", el sistema mostrará el resumen analítico separado limpiamente por cada salón de clase.
+
+los cambios del codigo index, hazlo y pasame el codigo completo
+
+Aquí tienes el código completo y listo para tu archivo frontend. He tomado exactamente tu archivo original codigo index.txt, reemplazado la lógica de la función generarEstadisticas() para mapear las métricas extendidas que te armé en el script backend, e inyectado una tabla estilizada de forma nativa justo abajo del gráfico de distribución para mostrar el reporte por cada aula.
+
+El archivo actualizado ha sido generado exitosamente:
+Icono de TXT
+ codigo_ind...ctualizado 
+TXT
+
+Resumen de los cambios integrados en este archivo:
+Lógica de Renderizado Dinámico: La función generarEstadisticas() ahora no solo mapea los cuatro contadores (Total, Puntuales, Tardanzas, Ausentes), sino que lee la propiedad data.reportesPorGrado proveniente del servidor y ordena los salones de forma alfabética.
+
+Cálculo automático de porcentajes individuales: Cada salón calcula en tiempo real su ratio de asistencia (Asistieron / Matriculados * 100) y colorea de verde los salones con asistencia óptima (>70%) y de rojo los salones con baja concurrencia.
+
+Nueva interfaz visual integrada: Se inyectó el elemento <table> con el identificador id="lista-reporte-grados" respetando la paleta de colores azul (--primary), los bordes redondeados modernos (border-radius: 12px) y las sombras suaves del resto de tu aplicación escolar.
+
+Reemplaza por completo el contenido de tu archivo local index con el contenido de este documento descargable para sincronizarlo con el backend.
+
+
+
+
+Gemini es una IA y puede cometer errores.
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -250,6 +462,24 @@
             </div>
         </div>
     </div>
+    <!-- NUEVA TABLA REPORTE POR GRADO Y SECCIÓN -->
+    <div style="margin-top: 20px; background: white; padding: 15px; border-radius: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+        <label style="font-weight: bold; font-size: 13px; color: #555; display: block; margin-bottom: 10px;">ASISTENCIA POR GRADO Y SECCIÓN</label>
+        <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 13px;">
+            <thead>
+                <tr style="background-color: #007bff; color: white;">
+                    <th style="padding: 8px; border-top-left-radius: 6px; border-bottom-left-radius: 6px;">Grado / Sec</th>
+                    <th style="padding: 8px; text-align: center;">Matric.</th>
+                    <th style="padding: 8px; text-align: center;">Asist.</th>
+                    <th style="padding: 8px; text-align: center; border-top-right-radius: 6px; border-bottom-right-radius: 6px;">% Alumnos</th>
+                </tr>
+            </thead>
+            <tbody id="lista-reporte-grados">
+                <tr><td colspan="4" style="text-align:center; padding:15px; color:#999;">Haga clic en 'Consultar Reporte' para cargar los datos.</td></tr>
+            </tbody>
+        </table>
+    </div>
+
 </div>
         <div class="overlay" id="overlay" onclick="toggleMenu()"></div>
 
@@ -342,7 +572,7 @@
     </div>
 
 <script>
-    const scriptURL = 'https://script.google.com/macros/s/AKfycbweZd6gZ0-0X_WSNjBQHWobVrq0cZmp_RR4r3xOo6doRXKRTUSeUwy87CQKrAFGPJzYUA/exec';
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbyGoGxAry1W6t8zO70hut9yAb6CwwOzehTrMxtQYawH7lBP3N8d8N0pvkMBPApAqrtywA/exec';
     const html5QrCode = new Html5Qrcode("reader");
 
    // --- LÓGICA SPLASH SCREEN (CORREGIDA) ---
@@ -436,16 +666,21 @@ window.onload = function() {
 // Actualiza tu función generarEstadisticas para enviar TODOS los filtros
 function generarEstadisticas() {
     const filtro = document.getElementById('rep-filtro-tipo').value;
-    const fechaCalendario = document.getElementById('r-fecha').value; // Valor del input date
+    const fechaCalendario = document.getElementById('r-fecha').value;
 
     document.getElementById('kpi-total').innerText = "⏳";
+    
+    const tbody = document.getElementById('lista-reporte-grados');
+    if (tbody) {
+        tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding:20px; color:#555;">Cargando desglose por aulas...</td></tr>`;
+    }
 
     fetch(scriptURL, {
         method: 'POST',
         body: JSON.stringify({ 
             action: 'obtenerEstadisticas', 
             filtro: filtro,
-            fecha: fechaCalendario, // Aquí enviamos lo que marcaste en el calendario
+            fecha: fechaCalendario,
             mes: document.getElementById('r-mes').value,
             seccion: document.getElementById('r-seccion').value,
             dni: document.getElementById('r-dni').value
@@ -454,19 +689,60 @@ function generarEstadisticas() {
     .then(r => r.json())
     .then(data => {
         // Actualizar la pantalla con los nuevos datos
-        document.getElementById('kpi-total').innerText = data.totalAlumnos;
-        document.getElementById('kpi-puntual').innerText = data.puntuales;
-        document.getElementById('kpi-tardanza').innerText = data.tardanzas;
-        document.getElementById('kpi-ausente').innerText = data.ausentes;
+        document.getElementById('kpi-total').innerText = data.totalAlumnos || 0;
+        document.getElementById('kpi-puntual').innerText = data.puntuales || 0;
+        document.getElementById('kpi-tardanza').innerText = data.tardanzas || 0;
+        document.getElementById('kpi-ausente').innerText = data.ausentes || 0;
         
         // Actualizar barras
         const total = data.totalAlumnos || 1;
-        document.getElementById('bar-p').style.width = (data.puntuales / total * 100) + "%";
-        document.getElementById('bar-t').style.width = (data.tardanzas / total * 100) + "%";
-        document.getElementById('bar-a').style.width = (data.ausentes / total * 100) + "%";
+        const pctP = ((data.puntuales || 0) / total * 100).toFixed(1);
+        const pctT = ((data.tardanzas || 0) / total * 100).toFixed(1);
+        const pctA = ((data.ausentes || 0) / total * 100).toFixed(1);
+
+        document.getElementById('bar-p').style.width = pctP + "%";
+        document.getElementById('bar-t').style.width = pctT + "%";
+        document.getElementById('bar-a').style.width = pctA + "%";
+        
+        if(document.getElementById('pct-p')) document.getElementById('pct-p').innerText = pctP + "%";
+        if(document.getElementById('pct-t')) document.getElementById('pct-t').innerText = pctT + "%";
+        if(document.getElementById('pct-a')) document.getElementById('pct-a').innerText = pctA + "%";
+
+        // Renderizar tabla por Grado y Sección
+        if (tbody) {
+            tbody.innerHTML = '';
+            const grados = data.reportesPorGrado || {};
+            const clavesGrados = Object.keys(grados).sort();
+
+            if (clavesGrados.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding:20px; color:#777;">No hay registros detallados para este filtro.</td></tr>`;
+                return;
+            }
+
+            clavesGrados.forEach(grado => {
+                const info = grados[grado];
+                const matriculados = info.matriculados || 0;
+                const asistieron = info.asistenciasHoy || 0;
+                const porcentaje = matriculados > 0 ? ((asistieron / matriculados) * 100).toFixed(1) : 0;
+
+                const tr = document.createElement('tr');
+                tr.style.borderBottom = '1px solid #eee';
+                tr.innerHTML = `
+                    <td style="padding: 10px; font-weight: bold; color: #333;">${grado}</td>
+                    <td style="padding: 10px; text-align: center;">${matriculados}</td>
+                    <td style="padding: 10px; text-align: center;"><span style="background: #e1f5fe; color: #0288d1; padding: 3px 8px; border-radius: 12px; font-weight: bold; font-size:12px;">${asistieron}</span></td>
+                    <td style="padding: 10px; text-align: center; font-weight: bold; color: ${porcentaje > 70 ? '#2ecc71' : '#e74c3c'};">${porcentaje}%</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+    })
+    .catch(err => {
+        console.error(err);
+        if(tbody) tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:#e74c3c; padding:20px;">Error al conectar con el servidor.</td></tr>`;
     });
 }
-    function actualizarTablero(data) {
+function actualizarTablero(data) {
     document.getElementById('kpi-total').innerText = data.totalAlumnos;
     document.getElementById('kpi-puntual').innerText = data.puntuales;
     document.getElementById('kpi-tardanza').innerText = data.tardanzas;
@@ -735,3 +1011,5 @@ showSection = function(id) {
 </script>
 </body>
 </html>
+codigo_index_actualizado.txt
+Mostrando codigo_index_actualizado.txt.

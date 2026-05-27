@@ -342,7 +342,7 @@
     </div>
 
 <script>
-    const scriptURL = 'https://script.google.com/macros/s/AKfycbxtOsBywddxdsE6akQtkzBGMQGI8PeU4U2iGKkll8iChfLeZbTWAfxnzYk8UqqEjiSeqg/exec';
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbyRNKCkmaznoS42Du2ETiItM8wqXEVr2jHT6r7NWKg-21UEMEvPNlGzRZoNu8r2sPbvaA/exec';
     const html5QrCode = new Html5Qrcode("reader");
 
    // --- LÓGICA SPLASH SCREEN (CORREGIDA) ---
@@ -436,34 +436,55 @@ window.onload = function() {
 // Actualiza tu función generarEstadisticas para enviar TODOS los filtros
 function generarEstadisticas() {
     const filtro = document.getElementById('rep-filtro-tipo').value;
-    const fechaCalendario = document.getElementById('r-fecha').value; // Valor del input date
+    const inputFecha = document.getElementById('r-fecha').value; 
+    
+    // Convertir el input de sección a mayúsculas para emparejar con la base de datos
+    const seccionValor = document.getElementById('r-seccion').value.trim().toUpperCase();
+
+    const fechaAEnviar = (filtro === 'fecha' && inputFecha) ? inputFecha : new Date().toISOString().split('T')[0];
 
     document.getElementById('kpi-total').innerText = "⏳";
+    document.getElementById('kpi-puntual').innerText = "⏳";
+    document.getElementById('kpi-tardanza').innerText = "⏳";
+    document.getElementById('kpi-ausente').innerText = "⏳";
 
     fetch(scriptURL, {
         method: 'POST',
         body: JSON.stringify({ 
             action: 'obtenerEstadisticas', 
             filtro: filtro,
-            fecha: fechaCalendario, // Aquí enviamos lo que marcaste en el calendario
+            fecha: fechaAEnviar, 
             mes: document.getElementById('r-mes').value,
-            seccion: document.getElementById('r-seccion').value,
+            seccion: seccionValor, // Enviado limpio en mayúsculas
             dni: document.getElementById('r-dni').value
         })
     })
     .then(r => r.json())
     .then(data => {
-        // Actualizar la pantalla con los nuevos datos
+        // Actualizar números en tarjetas KPI
         document.getElementById('kpi-total').innerText = data.totalAlumnos;
         document.getElementById('kpi-puntual').innerText = data.puntuales;
         document.getElementById('kpi-tardanza').innerText = data.tardanzas;
         document.getElementById('kpi-ausente').innerText = data.ausentes;
-        
-        // Actualizar barras
+
+        // Actualizar el ancho dinámico de las barras gráficas
         const total = data.totalAlumnos || 1;
-        document.getElementById('bar-p').style.width = (data.puntuales / total * 100) + "%";
-        document.getElementById('bar-t').style.width = (data.tardanzas / total * 100) + "%";
-        document.getElementById('bar-a').style.width = (data.ausentes / total * 100) + "%";
+        const pP = (data.puntuales / total * 100).toFixed(1);
+        const pT = (data.tardanzas / total * 100).toFixed(1);
+        const pA = (data.ausentes / total * 100).toFixed(1);
+
+        document.getElementById('bar-p').style.width = pP + "%";
+        document.getElementById('bar-t').style.width = pT + "%";
+        document.getElementById('bar-a').style.width = pA + "%";
+        
+        // Actualizar los porcentajes de texto de la leyenda si existen
+        if(document.getElementById('pct-p')) document.getElementById('pct-p').innerText = pP + "%";
+        if(document.getElementById('pct-t')) document.getElementById('pct-t').innerText = pT + "%";
+        if(document.getElementById('pct-a')) document.getElementById('pct-a').innerText = pA + "%";
+    })
+    .catch(err => {
+        console.error("Error al obtener estadísticas:", err);
+        document.querySelectorAll('[id^="kpi-"]').forEach(el => el.innerText = "Error");
     });
 }
     function actualizarTablero(data) {

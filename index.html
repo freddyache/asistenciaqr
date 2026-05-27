@@ -22,30 +22,7 @@
             justify-content: center;
             overflow-x: hidden;
         }
-/* --- ESTILOS ADICIONALES PARA REPORTES --- */
-.stats-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
-    gap: 10px;
-    margin-bottom: 20px;
-}
-.stat-card {
-    padding: 15px 10px;
-    border-radius: 12px;
-    text-align: center;
-    color: white;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-}
-.stat-card span { display: block; font-size: 22px; font-weight: bold; }
-.stat-card label { color: rgba(255,255,255,0.8); font-size: 11px; margin: 0; }
 
-.dist-bar-container { margin-top: 20px; background: #eee; border-radius: 10px; height: 25px; overflow: hidden; display: flex; }
-.dist-bar { height: 100%; transition: width 0.5s ease; }
-
-.legend-item { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; font-size: 13px; }
-.dot { width: 12px; height: 12px; border-radius: 3px; }
-        
-        /* --- MENÚ HAMBURGUESA --- */
         .menu-btn {
             position: fixed;
             top: 15px;
@@ -87,7 +64,6 @@
 
         .menu-item:hover { background: var(--light); color: var(--primary); }
 
-        /* --- CONTENEDOR PRINCIPAL --- */
         .container {
             background: white;
             width: 92%;
@@ -106,7 +82,6 @@
         .section { display: none; padding: 25px; }
         .section.active { display: block; }
 
-        /* --- ESTILOS DE FORMULARIO --- */
         .form-group { margin-bottom: 15px; }
         label { display: block; font-weight: bold; margin-bottom: 5px; font-size: 13px; color: #555; }
         .form-control {
@@ -122,7 +97,6 @@
         .btn-green { background: var(--primary); }
         .btn-dark { background: var(--dark); }
 
-        /* --- ESCÁNER --- */
         .camera-box {
             border: 2px dashed var(--primary);
             background: #f0fdf4;
@@ -139,16 +113,14 @@
             background: rgba(0,0,0,0.4); z-index: 999;
         }
         .overlay.active { display: block; }
+        
+        .card { background: white; padding: 15px; border-radius: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); margin-bottom: 15px; }
     </style>
 </head>
 <body>
 
     <div id="splash-screen" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle, #1a253a 0%, #0a1120 100%); z-index: 2000; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; transition: opacity 0.6s ease-out;">
-        
-       <img src="https://lh3.googleusercontent.com/u/0/d/1-J6k5218y5p2B0ZtWJQ76Re0BGrydDRC" 
-     alt="Logo Institucional" 
-     style="width: 140px; height: 140px; object-fit: contain; margin-bottom: 25px; border-radius: 50%; background: white; padding: 5px; box-shadow: 0 0 25px rgba(77, 163, 255, 0.3);">
-
+       <img src="https://lh3.googleusercontent.com/u/0/d/1-J6k5218y5p2B0ZtWJQ76Re0BGrydDRC" alt="Logo Institucional" style="width: 140px; height: 140px; object-fit: contain; margin-bottom: 25px; border-radius: 50%; background: white; padding: 5px; box-shadow: 0 0 25px rgba(77, 163, 255, 0.3);">
         <div style="text-align: center; margin-bottom: 40px;">
             <p style="color: #4da3ff; font-size: 14px; margin: 0; letter-spacing: 1px;">Institución Educativa</p>
             <h2 style="font-size: 22px; margin: 10px 0; letter-spacing: 1px; color: #fff;">"SANTO DOMINGO DE GUZMAN"</h2>
@@ -156,16 +128,13 @@
             <div style="height: 1px; width: 60px; background: #4da3ff; margin: 0 auto 20px;"></div>
             <h3 style="color: #4da3ff; font-size: 15px; font-weight: normal; letter-spacing: 3px; text-transform: uppercase;">SISTEMA DE ASISTENCIA</h3>
         </div>
-
         <div style="width: 70%; max-width: 280px; height: 6px; background: rgba(255,255,255,0.1); border-radius: 10px; overflow: hidden;">
             <div id="progress-bar" style="width: 0%; height: 100%; background: linear-gradient(90deg, #007bff, #4da3ff); transition: width 0.1s linear;"></div>
         </div>
-        
         <p style="color: #444; font-size: 11px; position: absolute; bottom: 30px;">Año Escolar 2026</p>
     </div>
 
     <div id="main-app-content" style="visibility: hidden; opacity: 0; width: 100%; display: flex; justify-content: center; transition: opacity 0.8s ease-in;">
-        
         <div class="menu-btn" onclick="toggleMenu()"> ☰ </div>
 
         <div class="side-menu" id="sideMenu">
@@ -174,83 +143,113 @@
             <div class="menu-item" onclick="showSection('impresion')">🪪 Impresión de Carnets</div>
             <div class="menu-item" onclick="showSection('reportes')">📊 Reporte de Asistencia</div>
         </div>
-        <div id="reportes" class="section" style="display:none;">
-    <h2 style="text-align: center; color: var(--dark);">📊 Reporte de Asistencia</h2>
-    
-    <div class="card">
-    <label>Filtrar por:</label>
-    <select id="rep-filtro-tipo" class="input-field" onchange="toggleFiltrosDetallados()">
-        <option value="general">Vista General (Hoy/Semana/Mes)</option>
-        <option value="fecha">Fecha Específica</option>
-        <option value="mes">Mes Completo</option>
-        <option value="seccion">Grado y Sección</option>
-        <option value="alumno">DNI de Alumno</option>
-    </select>
-
-    <div id="f-rango" class="f-grupo">
-        <label>Periodo:</label>
-        <select id="r-rango" class="input-field"><option value="diario">Hoy</option><option value="semanal">Semanal</option><option value="mensual">Mensual</option></select>
-    </div>
-
-    <div id="f-fecha" class="f-grupo" style="display:none;">
-        <label>Seleccione Fecha:</label>
-        <input type="date" id="r-fecha" class="input-field">
-    </div>
-
-    <div id="f-mes" class="f-grupo" style="display:none;">
-        <label>Seleccione Mes:</label>
-        <input type="month" id="r-mes" class="input-field">
-    </div>
-
-    <div id="f-seccion" class="f-grupo" style="display:none;">
-        <label>Grado y Sección:</label>
-        <input type="text" id="r-seccion" class="input-field" placeholder="Ej: 5to A">
-    </div>
-
-    <div id="f-alumno" class="f-grupo" style="display:none;">
-        <label>DNI del Alumno:</label>
-        <input type="number" id="r-dni" class="input-field" placeholder="Ingrese DNI">
-    </div>
-
-    <button class="btn-primario" onclick="generarEstadisticas()" style="margin-top:10px;">Consultar Reporte</button>
-</div>
-
-    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 15px;">
-        <div style="background: #4a90e2; color: white; padding: 15px; border-radius: 12px; text-align: center;">
-            <span id="kpi-total" style="display: block; font-size: 24px; font-weight: bold;">0</span>
-            <label style="font-size: 12px; opacity: 0.9;">Total Alumnos</label>
-        </div>
-        <div style="background: #2ecc71; color: white; padding: 15px; border-radius: 12px; text-align: center;">
-            <span id="kpi-puntual" style="display: block; font-size: 24px; font-weight: bold;">0</span>
-            <label style="font-size: 12px; opacity: 0.9;">Puntuales</label>
-        </div>
-        <div style="background: #f39c12; color: white; padding: 15px; border-radius: 12px; text-align: center;">
-            <span id="kpi-tardanza" style="display: block; font-size: 24px; font-weight: bold;">0</span>
-            <label style="font-size: 12px; opacity: 0.9;">Tardanzas</label>
-        </div>
-        <div style="background: #e74c3c; color: white; padding: 15px; border-radius: 12px; text-align: center;">
-            <span id="kpi-ausente" style="display: block; font-size: 24px; font-weight: bold;">0</span>
-            <label style="font-size: 12px; opacity: 0.9;">Ausentes</label>
-        </div>
-    </div>
-
-    <div style="margin-top: 25px; background: white; padding: 15px; border-radius: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
-        <label style="font-weight: bold; font-size: 13px; color: #555;">DISTRIBUCIÓN DE ASISTENCIA</label>
-        <div style="display: flex; height: 30px; border-radius: 15px; overflow: hidden; margin-top: 10px; background: #eee;">
-            <div id="bar-p" style="background: #2ecc71; width: 0%; transition: width 0.5s;"></div>
-            <div id="bar-t" style="background: #f39c12; width: 0%; transition: width 0.5s;"></div>
-            <div id="bar-a" style="background: #e74c3c; width: 0%; transition: width 0.5s;"></div>
-        </div>
         
-        <div style="margin-top: 15px; font-size: 13px;">
-            <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
-                <span>🟢 Puntual: <b id="pct-p">0%</b></span>
-                <span>🟠 Tardanza: <b id="pct-t">0%</b></span>
-                <span>🔴 Ausente: <b id="pct-a">0%</b></span>
+        <div id="reportes" class="section" style="display:none;">
+            <h2 style="text-align: center; color: var(--dark);">📊 Reporte de Asistencia</h2>
+            
+            <div class="card">
+                <div class="form-group">
+                    <label>Tipo de Reporte:</label>
+                    <select id="rep-tipo" class="form-control" onchange="alternarCamposFiltro()">
+                        <option value="todos">Todo el Colegio</option>
+                        <option value="grado">Por Grado</option>
+                        <option value="seccion">Grado y Sección</option>
+                        <option value="alumno">Por Alumno Individual (DNI)</option>
+                    </select>
+                </div>
+
+                <div id="div-grado" class="form-group" style="display:none;">
+                    <label>Seleccione Grado:</label>
+                    <select id="r-grado" class="form-control">
+                        <option value="1">1° de Primaria</option>
+                        <option value="2">2° de Primaria</option>
+                        <option value="3">3° de Primaria</option>
+                        <option value="4">4° de Primaria</option>
+                        <option value="5">5° de Primaria</option>
+                    </select>
+                </div>
+
+                <div id="div-seccion" class="form-group" style="display:none;">
+                    <label>Sección:</label>
+                    <select id="r-seccion" class="form-control">
+                        <option value="A">Sección A</option>
+                        <option value="B">Sección B</option>
+                    </select>
+                </div>
+
+                <div id="div-dni" class="form-group" style="display:none;">
+                    <label>Número de DNI del Alumno:</label>
+                    <input type="number" id="r-dni" class="form-control" placeholder="Ingrese DNI">
+                </div>
+
+                <hr style="border:0; border-top:1px dashed #ced4da; margin:20px 0;">
+
+                <div class="form-group">
+                    <label>Filtro de Fecha:</label>
+                    <select id="rep-fecha-tipo" class="form-control" onchange="alternarCamposFiltro()">
+                        <option value="hoy">Día Actual</option>
+                        <option value="semana">Semana Actual</option>
+                        <option value="mes">Mes Completo</option>
+                        <option value="rango">Intervalo de Fechas Personalizado</option>
+                    </select>
+                </div>
+
+                <div id="div-rango-fechas" style="display:none; gap:10px; margin-bottom:15px;">
+                    <div style="flex:1;">
+                        <label>Desde:</label>
+                        <input type="date" id="r-fecha-inicio" class="form-control">
+                    </div>
+                    <div style="flex:1;">
+                        <label>Hasta:</label>
+                        <input type="date" id="r-fecha-fin" class="form-control">
+                    </div>
+                </div>
+
+                <div id="div-mes" class="form-group" style="display:none;">
+                    <label>Seleccione el Mes:</label>
+                    <input type="month" id="r-mes" class="form-control">
+                </div>
+
+                <button class="btn-main btn-green" onclick="generarEstadisticas()" style="margin-top:15px;">Consultar Reporte</button>
+            </div>
+
+            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 15px;">
+                <div style="background: #4a90e2; color: white; padding: 15px; border-radius: 12px; text-align: center;">
+                    <span id="kpi-total" style="display: block; font-size: 24px; font-weight: bold;">0</span>
+                    <label style="font-size: 12px; opacity: 0.9;">Total Alumnos</label>
+                </div>
+                <div style="background: #2ecc71; color: white; padding: 15px; border-radius: 12px; text-align: center;">
+                    <span id="kpi-puntual" style="display: block; font-size: 24px; font-weight: bold;">0</span>
+                    <label style="font-size: 12px; opacity: 0.9;">Puntuales</label>
+                </div>
+                <div style="background: #f39c12; color: white; padding: 15px; border-radius: 12px; text-align: center;">
+                    <span id="kpi-tardanza" style="display: block; font-size: 24px; font-weight: bold;">0</span>
+                    <label style="font-size: 12px; opacity: 0.9;">Tardanzas</label>
+                </div>
+                <div style="background: #e74c3c; color: white; padding: 15px; border-radius: 12px; text-align: center;">
+                    <span id="kpi-ausente" style="display: block; font-size: 24px; font-weight: bold;">0</span>
+                    <label style="font-size: 12px; opacity: 0.9;">Ausentes</label>
+                </div>
+            </div>
+
+            <div style="margin-top: 25px; background: white; padding: 15px; border-radius: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+                <label style="font-weight: bold; font-size: 13px; color: #555;">DISTRIBUCIÓN DE ASISTENCIA</label>
+                <div style="display: flex; height: 30px; border-radius: 15px; overflow: hidden; margin-top: 10px; background: #eee;">
+                    <div id="bar-p" style="background: #2ecc71; width: 0%; transition: width 0.5s;"></div>
+                    <div id="bar-t" style="background: #f39c12; width: 0%; transition: width 0.5s;"></div>
+                    <div id="bar-a" style="background: #e74c3c; width: 0%; transition: width 0.5s;"></div>
+                </div>
+                
+                <div style="margin-top: 15px; font-size: 13px;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                        <span>🟢 Puntual: <b id="pct-p">0%</b></span>
+                        <span>🟠 Tardanza: <b id="pct-t">0%</b></span>
+                        <span>🔴 Ausente: <b id="pct-a">0%</b></span>
+                    </div>
+                </div>
             </div>
         </div>
-    </div>
-</div>
+        
         <div class="overlay" id="overlay" onclick="toggleMenu()"></div>
 
         <div class="container">
@@ -342,17 +341,17 @@
     </div>
 
 <script>
-    const scriptURL = 'https://script.google.com/macros/s/AKfycbylOcUFT9gBLfQ1wylI-htq3ruPRbyXHPs3jtJKpqHt7t-WSeq5a-oSfZVwus92maN-0g/exec';
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbyrhB5bk-Deu9ZB0cPXcJwpmXb_97J-1x0yAT_EYKKLLMOZLQLooUBNuAEBBsPdI3tmyw/exec'; // Recuerda actualizar con tu URL actual si cambia
     const html5QrCode = new Html5Qrcode("reader");
+    let isProcessing = false;
 
-   // --- LÓGICA SPLASH SCREEN (CORREGIDA) ---
 window.onload = function() {
     const splash = document.getElementById('splash-screen');
-    const mainContent = document.getElementById('main-app-content'); // Verifica que este ID sea igual al de tu div principal
+    const mainContent = document.getElementById('main-app-content'); 
     const progressBar = document.getElementById('progress-bar');
     
     let width = 0;
-    const duracionTotal = 5500; 
+    const duracionTotal = 2000; // Reducido a 2s para agilizar pruebas de desarrollo
     const intervalo = 25; 
     const paso = 100 / (duracionTotal / intervalo);
 
@@ -366,8 +365,7 @@ window.onload = function() {
                     mainContent.style.visibility = 'visible';
                     mainContent.style.opacity = '1';
                 }
-                // IMPORTANTE: Al terminar, forzamos el inicio en Reporte de Asistencia
-                showSection('escaneo', 'Reporte de Asistencia');
+                showSection('escaneo', 'Asistencia QR');
             }, 600);
         } else {
             width += paso;
@@ -376,181 +374,151 @@ window.onload = function() {
     }, intervalo);
 };
 
+    // MANEJO EXCLUSIVO DE VISIBILIDAD DE FILTROS DINÁMICOS
+    function alternarCamposFiltro() {
+        const tipoReporte = document.getElementById('rep-tipo').value;
+        const filtroFecha = document.getElementById('rep-fecha-tipo').value;
+
+        // Visibilidad organizativa
+        document.getElementById('div-grado').style.display = (tipoReporte === 'grado' || tipoReporte === 'seccion') ? 'block' : 'none';
+        document.getElementById('div-seccion').style.display = (tipoReporte === 'seccion') ? 'block' : 'none';
+        document.getElementById('div-dni').style.display = (tipoReporte === 'alumno') ? 'block' : 'none';
+
+        // Visibilidad de rango temporal
+        document.getElementById('div-rango-fechas').style.display = (filtroFecha === 'rango') ? 'flex' : 'none';
+        document.getElementById('div-mes').style.display = (filtroFecha === 'mes') ? 'block' : 'none';
+    }
+
+    // TRANSMISIÓN DE VARIABLES COMBINADAS AL SERVIDOR
+    function generarEstadisticas() {
+        const tipoReporte = document.getElementById('rep-tipo').value;
+        const filtroFecha = document.getElementById('rep-fecha-tipo').value;
+
+        const payload = {
+            action: 'obtenerEstadisticas',
+            tipoReporte: tipoReporte,
+            filtroFecha: filtroFecha,
+            grado: document.getElementById('r-grado').value,
+            seccion: document.getElementById('r-seccion').value,
+            dni: document.getElementById('r-dni').value,
+            fechaInicio: document.getElementById('r-fecha-inicio').value,
+            fechaFin: document.getElementById('r-fecha-fin').value,
+            mes: document.getElementById('r-mes').value
+        };
+
+        // Alertas de validaciones básicas en cliente
+        if (tipoReporte === 'alumno' && !payload.dni) return alert("Por favor, ingrese el número de DNI.");
+        if (filtroFecha === 'rango' && (!payload.fechaInicio || !payload.fechaFin)) return alert("Complete ambas fechas del intervalo.");
+        if (filtroFecha === 'mes' && !payload.mes) return alert("Seleccione un año y mes válido.");
+
+        document.querySelectorAll('[id^="kpi-"]').forEach(el => el.innerText = "⏳");
+
+        fetch(scriptURL, {
+            method: 'POST',
+            body: JSON.stringify(payload)
+        })
+        .then(r => r.json())
+        .then(data => {
+            document.getElementById('kpi-total').innerText = data.totalAlumnos;
+            document.getElementById('kpi-puntual').innerText = data.puntuales;
+            document.getElementById('kpi-tardanza').innerText = data.tardanzas;
+            document.getElementById('kpi-ausente').innerText = data.ausentes;
+
+            const total = data.totalAlumnos || 1;
+            const pP = (data.puntuales / total * 100).toFixed(1);
+            const pT = (data.tardanzas / total * 100).toFixed(1);
+            const pA = (data.ausentes / total * 100).toFixed(1);
+
+            document.getElementById('bar-p').style.width = pP + "%";
+            document.getElementById('bar-t').style.width = pT + "%";
+            document.getElementById('bar-a').style.width = pA + "%";
+            
+            if(document.getElementById('pct-p')) document.getElementById('pct-p').innerText = pP + "%";
+            if(document.getElementById('pct-t')) document.getElementById('pct-t').innerText = pT + "%";
+            if(document.getElementById('pct-a')) document.getElementById('pct-a').innerText = pA + "%";
+        })
+        .catch(err => {
+            console.error("Error cronológico:", err);
+            document.querySelectorAll('[id^="kpi-"]').forEach(el => el.innerText = "Error");
+        });
+    }
+
     function showSection(id, title) {
-    // 1. Ocultar todas las secciones
-    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-    
-    // 2. Mostrar la sección seleccionada
-    const targetSection = document.getElementById(id);
-    if (targetSection) {
-        targetSection.classList.add('active');
-    }
+        document.querySelectorAll('.section').forEach(s => {
+            s.classList.remove('active');
+            s.style.display = 'none';
+        });
 
-    // 3. Actualizar el título de la cabecera
-    const viewTitle = document.getElementById('view-title');
-    if (viewTitle) {
-        viewTitle.innerText = title;
-    }
+        const targetSection = document.getElementById(id);
+        if (targetSection) {
+            targetSection.classList.add('active');
+            targetSection.style.display = 'block';
+        }
 
-    // --- LA SOLUCIÓN AQUÍ ---
-    // 4. Cerrar el menú automáticamente al elegir la opción
-    const sideMenu = document.getElementById('sideMenu');
-    if (sideMenu) {
-        sideMenu.classList.remove('active');
-    }
+        const viewTitle = document.getElementById('view-title');
+        if (viewTitle) {
+            if (!title || title === 'undefined') {
+                if (id === 'escaneo') viewTitle.innerText = 'Asistencia QR';
+                else if (id === 'reportes') viewTitle.innerText = 'Reporte de Asistencia';
+                else if (id === 'agregar') viewTitle.innerText = 'Nuevo Estudiante';
+                else if (id === 'impresion') viewTitle.innerText = 'Imprimir Carnets';
+                else viewTitle.innerText = 'Sistema Adprint';
+            } else {
+                viewTitle.innerText = title;
+            }
+        }
 
-    // 5. Lógica adicional (iniciar cámara o cargar reportes)
-    if (id === 'escaneo') {
-        iniciarCamara();
-    } else {
-        // Si no es escaneo, apagamos la cámara para ahorrar batería
-        if (typeof html5QrCode !== 'undefined') {
-            html5QrCode.stop().catch(() => {}); 
+        const sideMenu = document.getElementById('sideMenu');
+        if (sideMenu) sideMenu.classList.remove('active');
+
+        if (id === 'escaneo') {
+            iniciarCamara();
+        } else {
+            if (typeof html5QrCode !== 'undefined' && html5QrCode.isScanning) {
+                html5QrCode.stop().catch(() => {});
+            }
+        }
+
+        if (id === 'reportes') {
+            alternarCamposFiltro();
+            generarEstadisticas();
         }
     }
 
-    // Si es la sección de reportes, cargar los datos de inmediato
-    if (id === 'reportes') {
-        generarEstadisticas();
-    }
-}
-
+    function toggleMenu() { document.getElementById('sideMenu').classList.toggle('active'); }
     function togglePrintFields() {
         const type = document.getElementById('p-tipo').value;
         document.getElementById('field-dni').style.display = (type === 'individual') ? 'block' : 'none';
         document.getElementById('field-seccion').style.display = (type === 'seccion') ? 'flex' : 'none';
     }
-    function toggleFiltrosDetallados() {
-    const tipo = document.getElementById('rep-filtro-tipo').value;
-    // Ocultar todos
-    document.querySelectorAll('.f-grupo').forEach(div => div.style.display = 'none');
-    
-    // Mostrar el seleccionado
-    if(tipo === 'general') document.getElementById('f-rango').style.display = 'block';
-    if(tipo === 'fecha') document.getElementById('f-fecha').style.display = 'block';
-    if(tipo === 'mes') document.getElementById('f-mes').style.display = 'block';
-    if(tipo === 'seccion') document.getElementById('f-seccion').style.display = 'block';
-    if(tipo === 'alumno') document.getElementById('f-alumno').style.display = 'block';
-}
 
-// Actualiza tu función generarEstadisticas para enviar TODOS los filtros
-function generarEstadisticas() {
-    const filtro = document.getElementById('rep-filtro-tipo').value;
-    const inputFecha = document.getElementById('r-fecha').value; 
-    
-    // Convertir el input de sección a mayúsculas para emparejar con la base de datos
-    const seccionValor = document.getElementById('r-seccion').value.trim().toUpperCase();
-
-    const fechaAEnviar = (filtro === 'fecha' && inputFecha) ? inputFecha : new Date().toISOString().split('T')[0];
-
-    document.getElementById('kpi-total').innerText = "⏳";
-    document.getElementById('kpi-puntual').innerText = "⏳";
-    document.getElementById('kpi-tardanza').innerText = "⏳";
-    document.getElementById('kpi-ausente').innerText = "⏳";
-
-    fetch(scriptURL, {
-        method: 'POST',
-        body: JSON.stringify({ 
-            action: 'obtenerEstadisticas', 
-            filtro: filtro,
-            fecha: fechaAEnviar, 
-            mes: document.getElementById('r-mes').value,
-            seccion: seccionValor, // Enviado limpio en mayúsculas
-            dni: document.getElementById('r-dni').value
-        })
-    })
-    .then(r => r.json())
-    .then(data => {
-        // Actualizar números en tarjetas KPI
-        document.getElementById('kpi-total').innerText = data.totalAlumnos;
-        document.getElementById('kpi-puntual').innerText = data.puntuales;
-        document.getElementById('kpi-tardanza').innerText = data.tardanzas;
-        document.getElementById('kpi-ausente').innerText = data.ausentes;
-
-        // Actualizar el ancho dinámico de las barras gráficas
-        const total = data.totalAlumnos || 1;
-        const pP = (data.puntuales / total * 100).toFixed(1);
-        const pT = (data.tardanzas / total * 100).toFixed(1);
-        const pA = (data.ausentes / total * 100).toFixed(1);
-
-        document.getElementById('bar-p').style.width = pP + "%";
-        document.getElementById('bar-t').style.width = pT + "%";
-        document.getElementById('bar-a').style.width = pA + "%";
-        
-        // Actualizar los porcentajes de texto de la leyenda si existen
-        if(document.getElementById('pct-p')) document.getElementById('pct-p').innerText = pP + "%";
-        if(document.getElementById('pct-t')) document.getElementById('pct-t').innerText = pT + "%";
-        if(document.getElementById('pct-a')) document.getElementById('pct-a').innerText = pA + "%";
-    })
-    .catch(err => {
-        console.error("Error al obtener estadísticas:", err);
-        document.querySelectorAll('[id^="kpi-"]').forEach(el => el.innerText = "Error");
-    });
-}
-    function actualizarTablero(data) {
-    document.getElementById('kpi-total').innerText = data.totalAlumnos;
-    document.getElementById('kpi-puntual').innerText = data.puntuales;
-    document.getElementById('kpi-tardanza').innerText = data.tardanzas;
-    document.getElementById('kpi-ausente').innerText = data.ausentes;
-
-    const total = data.totalAlumnos || 1;
-    document.getElementById('bar-p').style.width = (data.puntuales / total * 100) + "%";
-    document.getElementById('bar-t').style.width = (data.tardanzas / total * 100) + "%";
-    document.getElementById('bar-a').style.width = (data.ausentes / total * 100) + "%";
-    
-    // Actualizar leyendas de porcentaje
-    document.getElementById('pct-p').innerText = (data.puntuales / total * 100).toFixed(1) + "%";
-    document.getElementById('pct-t').innerText = (data.tardanzas / total * 100).toFixed(1) + "%";
-    document.getElementById('pct-a').innerText = (data.ausentes / total * 100).toFixed(1) + "%";
-}
     function onScanSuccess(decodedText) {
-    if (isProcessing) return; // Evita escaneos múltiples del mismo código
-    isProcessing = true;
-
-    const statusMsg = document.getElementById('status-msg');
-    if (statusMsg) {
-        statusMsg.style.display = 'block';
+        if (isProcessing) return; 
+        isProcessing = true;
+        const statusMsg = document.getElementById('status-msg');
         statusMsg.innerHTML = "<span style='color:var(--primary)'>⏳ Registrando...</span>";
+
+        fetch(scriptURL, {
+            method: 'POST',
+            body: JSON.stringify({ action: "asistencia", id: decodedText })
+        })
+        .then(r => r.json())
+        .then(res => {
+            if (res.status === "success") {
+                if (typeof navigator.vibrate === "function") navigator.vibrate(100);
+                let color = res.estado === "TARDANZA" ? "red" : "green";
+                statusMsg.innerHTML = `
+                    <div style="border: 2px solid ${color}; padding: 10px; border-radius: 10px; background: white;">
+                        <div style="font-size: 14px; color: #333;">${res.nombre}</div>
+                        <div style="font-size: 20px; font-weight: bold; color: ${color};">${res.estado}</div>
+                    </div>`;
+            } else {
+                statusMsg.innerHTML = "<span style='color:red'>❌ No registrado</span>";
+            }
+            setTimeout(() => { isProcessing = false; statusMsg.innerHTML = "Esperando siguiente código QR..."; }, 2500); 
+        })
+        .catch(err => { isProcessing = false; statusMsg.innerText = "Error de conexión."; });
     }
-
-    fetch(scriptURL, {
-        method: 'POST',
-        body: JSON.stringify({ action: "asistencia", id: decodedText })
-    })
-    .then(r => r.json())
-    .then(res => {
-        if (res.status === "success") {
-            // Sonido de éxito (opcional)
-            if (typeof navigator.vibrate === "function") navigator.vibrate(100);
-
-            let color = res.estado === "TARDANZA" ? "red" : "green";
-            if (res.estado === "FUERA DE HORARIO") color = "gray";
-
-            // Mostramos quién entró y su estado
-            statusMsg.innerHTML = `
-                <div style="border: 2px solid ${color}; padding: 10px; border-radius: 10px; background: white;">
-                    <div style="font-size: 14px; color: #333;">${res.nombre}</div>
-                    <div style="font-size: 20px; font-weight: bold; color: ${color};">${res.estado}</div>
-                </div>
-            `;
-        } else {
-            statusMsg.innerHTML = "<span style='color:red'>❌ No registrado</span>";
-        }
-
-        // --- LA CLAVE PARA ESCANEO CONTINUO ---
-        // Esperamos 2.5 segundos para que veas el nombre y luego limpiamos para el SIGUIENTE
-        setTimeout(() => {
-            isProcessing = false; // Desbloqueamos para el siguiente escaneo
-            statusMsg.innerHTML = "Esperando siguiente código QR...";
-            // NO llamamos a html5QrCode.stop(), así la cámara sigue encendida
-        }, 2500); 
-    })
-    .catch(err => {
-        console.error(err);
-        isProcessing = false;
-        statusMsg.innerText = "Error de conexión. Reintentando...";
-    });
-}
 
     function guardarAlumno() {
         const id = document.getElementById('new-dni').value;
@@ -562,34 +530,20 @@ function generarEstadisticas() {
 
         if(!id || !nombres) return alert("DNI y Nombres son obligatorios");
 
-        const datos = {
-            action: 'agregar',
-            id: id,
-            nombres: nombres,
-            apellidos: apellidos,
-            gradoSeccion: grado + seccion,
-            telefono: telefono,
-            perfil: "ESTUDIANTE"
-        };
-
-        alert("Enviando datos... por favor espere.");
-
         fetch(scriptURL, {
             method: 'POST',
             mode: 'no-cors', 
-            body: JSON.stringify(datos)
+            body: JSON.stringify({
+                action: 'agregar', id: id, nombres: nombres, apellidos: apellidos, gradoSeccion: grado + seccion, telefono: telefono
+            })
         })
         .then(() => {
-            alert("¡Proceso completado! Estudiante registrado.");
+            alert("¡Estudiante registrado!");
             document.getElementById('new-dni').value = "";
             document.getElementById('new-nombres').value = "";
             document.getElementById('new-apellidos').value = "";
             document.getElementById('new-celular').value = "";
             showSection('escaneo');
-        })
-        .catch(err => {
-            console.error(err);
-            alert("Error al conectar con el servidor.");
         });
     }
 
@@ -600,159 +554,23 @@ function generarEstadisticas() {
             dni: document.getElementById('p-dni').value,
             gradoSeccion: document.getElementById('p-grado').value + document.getElementById('p-seccion').value
         };
-
         const btnCargar = document.querySelector("#impresion .btn-dark");
-        const textoOriginal = btnCargar.innerText;
-        btnCargar.innerText = "⌛ Generando... espere";
+        btnCargar.innerText = "⌛ Generando...";
         btnCargar.disabled = true;
-
-        const viejoLink = document.getElementById('temp-download-link');
-        if(viejoLink) viejoLink.remove();
 
         fetch(scriptURL, { method: 'POST', body: JSON.stringify(datos) })
         .then(r => r.text())
         .then(url => {
-            btnCargar.innerText = textoOriginal;
+            btnCargar.innerText = "Generar PDF (9 por hoja)";
             btnCargar.disabled = false;
-
-            if(url.includes("http")) {
-                const linkWrap = document.createElement('div');
-                linkWrap.id = 'temp-download-link';
-                linkWrap.innerHTML = `
-                    <a href="${url}" target="_blank" 
-                       style="display: block; background: #007bff; color: white; text-align: center; 
-                              padding: 15px; border-radius: 12px; margin-top: 20px; 
-                              text-decoration: none; font-weight: bold; border: 2px solid #0056b3;">
-                        📥 CLIC AQUÍ PARA DESCARGAR PDF
-                    </a>
-                `;
-                document.getElementById('impresion').appendChild(linkWrap);
-                window.open(url, '_blank');
-            } else {
-                alert("Error del servidor: " + url);
-            }
-        })
-        .catch(err => {
-            btnCargar.innerText = textoOriginal;
-            btnCargar.disabled = false;
-            alert("Error de conexión.");
+            if(url.includes("http")) { window.open(url, '_blank'); } else { alert("Error: " + url); }
         });
     }
 
     function iniciarCamara() {
-    const config = { 
-        fps: 15, // Velocidad de cuadros
-        qrbox: { width: 250, height: 250 }, 
-        aspectRatio: 1.0 
-    };
-
-    html5QrCode.start({ facingMode: "environment" }, config, onScanSuccess)
-    .then(() => {
-        isProcessing = false; // Nos aseguramos de que empiece desbloqueado
-        document.getElementById('status-msg').innerText = "Cámara lista. Escanee el carnet.";
-    })
-    .catch(err => {
-        document.getElementById('status-msg').innerText = "Error al iniciar cámara.";
-    });
-}
-function generarEstadisticas() {
-    const filtro = document.getElementById('rep-filtro-tipo').value;
-    const inputFecha = document.getElementById('r-fecha').value; 
-    
-    // Si el filtro es 'fecha', enviamos lo que el usuario marcó
-    // Si no, enviamos la fecha de hoy formateada
-    const fechaAEnviar = (filtro === 'fecha' && inputFecha) ? inputFecha : new Date().toISOString().split('T')[0];
-
-    document.getElementById('kpi-total').innerText = "⏳";
-
-    fetch(scriptURL, {
-        method: 'POST',
-        body: JSON.stringify({ 
-            action: 'obtenerEstadisticas', 
-            filtro: filtro,
-            fecha: fechaAEnviar, 
-            mes: document.getElementById('r-mes').value,
-            seccion: document.getElementById('r-seccion').value,
-            dni: document.getElementById('r-dni').value
-        })
-    })
-    .then(r => r.json())
-    .then(data => {
-        document.getElementById('kpi-total').innerText = data.totalAlumnos;
-        document.getElementById('kpi-puntual').innerText = data.puntuales;
-        document.getElementById('kpi-tardanza').innerText = data.tardanzas;
-        document.getElementById('kpi-ausente').innerText = data.ausentes;
-
-        const total = data.totalAlumnos || 1;
-        document.getElementById('bar-p').style.width = (data.puntuales / total * 100) + "%";
-        document.getElementById('bar-t').style.width = (data.tardanzas / total * 100) + "%";
-        document.getElementById('bar-a').style.width = (data.ausentes / total * 100) + "%";
-    });
-}
-// Función para abrir y cerrar el menú manualmente
-function toggleMenu() {
-    const menu = document.getElementById('sideMenu');
-    menu.classList.toggle('active');
-}
-
-// Función para cambiar de sección y CERRAR el menú
-function showSection(id, title) {
-    // 1. Ocultar todas las secciones
-    document.querySelectorAll('.section').forEach(s => {
-        s.classList.remove('active');
-        s.style.display = 'none';
-    });
-
-    // 2. Mostrar la sección seleccionada
-    const targetSection = document.getElementById(id);
-    if (targetSection) {
-        targetSection.classList.add('active');
-        targetSection.style.display = 'block';
+        html5QrCode.start({ facingMode: "environment" }, { fps: 15, qrbox: { width: 250, height: 250 }, aspectRatio: 1.0 }, onScanSuccess)
+        .then(() => { isProcessing = false; document.getElementById('status-msg').innerText = "Cámara lista."; });
     }
-
-    // 3. ACTUALIZACIÓN DE TÍTULOS (Corregido para las 4 secciones)
-    const viewTitle = document.getElementById('view-title');
-    if (viewTitle) {
-        // Si el título es undefined, asignamos el nombre según el ID de la sección
-        if (!title || title === 'undefined') {
-            if (id === 'escaneo') viewTitle.innerText = 'Asistencia QR';
-            else if (id === 'reportes') viewTitle.innerText = 'Reporte de Asistencia';
-            else if (id === 'agregar') viewTitle.innerText = 'Nuevo Estudiante';
-            else if (id === 'impresion') viewTitle.innerText = 'Imprimir Carnets';
-            else viewTitle.innerText = 'Sistema Adprint';
-        } else {
-            // Si el título sí viene correctamente, lo usamos
-            viewTitle.innerText = title;
-        }
-    }
-
-    // 4. Cerrar el menú lateral
-    const sideMenu = document.getElementById('sideMenu');
-    if (sideMenu) {
-        sideMenu.classList.remove('active');
-    }
-
-    // 5. Lógica de Cámara
-    if (id === 'escaneo') {
-        iniciarCamara();
-    } else {
-        if (typeof html5QrCode !== 'undefined' && html5QrCode.isScanning) {
-            html5QrCode.stop().catch(() => {});
-        }
-    }
-
-    // 6. Lógica de Reportes
-    if (id === 'reportes') {
-        generarEstadisticas();
-    }
-}
-// Actualizar showSection para cargar estadísticas
-const originalShowSection = showSection;
-showSection = function(id) {
-    originalShowSection(id);
-    if(id === 'reportes') generarEstadisticas();
-};
-    function detenerCamara() { if(html5QrCode.isScanning) html5QrCode.stop(); }
 </script>
 </body>
 </html>

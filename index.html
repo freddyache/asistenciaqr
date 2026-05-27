@@ -174,95 +174,83 @@
             <div class="menu-item" onclick="showSection('impresion')">🪪 Impresión de Carnets</div>
             <div class="menu-item" onclick="showSection('reportes')">📊 Reporte de Asistencia</div>
         </div>
-        
         <div id="reportes" class="section" style="display:none;">
-            <h2 style="text-align: center; color: var(--dark);">📊 Reporte de Asistencia</h2>
-            
-            <div class="card" style="background: white; padding: 15px; border-radius: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); margin-bottom: 15px;">
-                <label>Filtrar por:</label>
-                <select id="rep-filtro-tipo" class="form-control" onchange="toggleFiltrosDetallados()" style="margin-bottom: 10px;">
-                    <option value="general">Vista General (Hoy/Semana/Mes)</option>
-                    <option value="fecha">Fecha Específica</option>
-                    <option value="mes">Mes Completo</option>
-                    <option value="seccion">Grado y Sección</option>
-                    <option value="alumno">DNI de Alumno</option>
-                </select>
+    <h2 style="text-align: center; color: var(--dark);">📊 Reporte de Asistencia</h2>
+    
+    <div class="card">
+    <label>Filtrar por:</label>
+    <select id="rep-filtro-tipo" class="input-field" onchange="toggleFiltrosDetallados()">
+        <option value="general">Vista General (Hoy/Semana/Mes)</option>
+        <option value="fecha">Fecha Específica</option>
+        <option value="mes">Mes Completo</option>
+        <option value="seccion">Grado y Sección</option>
+        <option value="alumno">DNI de Alumno</option>
+    </select>
 
-                <div id="f-rango" class="f-grupo">
-                    <label>Periodo:</label>
-                    <select id="r-rango" class="form-control">
-                        <option value="diario">Hoy</option>
-                        <option value="semanal">Semanal</option>
-                        <option value="mensual">Mensual</option>
-                    </select>
-                </div>
+    <div id="f-rango" class="f-grupo">
+        <label>Periodo:</label>
+        <select id="r-rango" class="input-field"><option value="diario">Hoy</option><option value="semanal">Semanal</option><option value="mensual">Mensual</option></select>
+    </div>
 
-                <div id="f-fecha" class="f-grupo" style="display:none;">
-                    <div class="form-group">
-                        <label>Seleccione Fecha:</label>
-                        <input type="date" id="r-fecha" class="form-control">
-                    </div>
-                    <div class="form-group" style="margin-top: 10px;">
-                        <label>Filtrar también por Sección (Opcional):</label>
-                        <input type="text" id="r-fecha-seccion" class="form-control" placeholder="Ej: 5A o dejar vacío para todos">
-                    </div>
-                </div>
+    <div id="f-fecha" class="f-grupo" style="display:none;">
+        <label>Seleccione Fecha:</label>
+        <input type="date" id="r-fecha" class="input-field">
+    </div>
 
-                <div id="f-mes" class="f-grupo" style="display:none;">
-                    <label>Seleccione Mes:</label>
-                    <input type="month" id="r-mes" class="form-control">
-                </div>
+    <div id="f-mes" class="f-grupo" style="display:none;">
+        <label>Seleccione Mes:</label>
+        <input type="month" id="r-mes" class="input-field">
+    </div>
 
-                <div id="f-seccion" class="f-grupo" style="display:none;">
-                    <label>Grado y Sección:</label>
-                    <input type="text" id="r-seccion" class="form-control" placeholder="Ej: 5A">
-                </div>
+    <div id="f-seccion" class="f-grupo" style="display:none;">
+        <label>Grado y Sección:</label>
+        <input type="text" id="r-seccion" class="input-field" placeholder="Ej: 5to A">
+    </div>
 
-                <div id="f-alumno" class="f-grupo" style="display:none;">
-                    <label>DNI del Alumno:</label>
-                    <input type="number" id="r-dni" class="form-control" placeholder="Ingrese DNI">
-                </div>
+    <div id="f-alumno" class="f-grupo" style="display:none;">
+        <label>DNI del Alumno:</label>
+        <input type="number" id="r-dni" class="input-field" placeholder="Ingrese DNI">
+    </div>
 
-                <button class="btn-main btn-green" onclick="generarEstadisticas()" style="margin-top:15px;">Consultar Reporte</button>
-            </div>
+    <button class="btn-primario" onclick="generarEstadisticas()" style="margin-top:10px;">Consultar Reporte</button>
+</div>
 
-            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 15px;">
-                <div style="background: #4a90e2; color: white; padding: 15px; border-radius: 12px; text-align: center;">
-                    <span id="kpi-total" style="display: block; font-size: 24px; font-weight: bold;">0</span>
-                    <label style="font-size: 12px; opacity: 0.9;">Total Alumnos</label>
-                </div>
-                <div style="background: #2ecc71; color: white; padding: 15px; border-radius: 12px; text-align: center;">
-                    <span id="kpi-puntual" style="display: block; font-size: 24px; font-weight: bold;">0</span>
-                    <label style="font-size: 12px; opacity: 0.9;">Puntuales</label>
-                </div>
-                <div style="background: #f39c12; color: white; padding: 15px; border-radius: 12px; text-align: center;">
-                    <span id="kpi-tardanza" style="display: block; font-size: 24px; font-weight: bold;">0</span>
-                    <label style="font-size: 12px; opacity: 0.9;">Tardanzas</label>
-                </div>
-                <div style="background: #e74c3c; color: white; padding: 15px; border-radius: 12px; text-align: center;">
-                    <span id="kpi-ausente" style="display: block; font-size: 24px; font-weight: bold;">0</span>
-                    <label style="font-size: 12px; opacity: 0.9;">Ausentes</label>
-                </div>
-            </div>
+    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 15px;">
+        <div style="background: #4a90e2; color: white; padding: 15px; border-radius: 12px; text-align: center;">
+            <span id="kpi-total" style="display: block; font-size: 24px; font-weight: bold;">0</span>
+            <label style="font-size: 12px; opacity: 0.9;">Total Alumnos</label>
+        </div>
+        <div style="background: #2ecc71; color: white; padding: 15px; border-radius: 12px; text-align: center;">
+            <span id="kpi-puntual" style="display: block; font-size: 24px; font-weight: bold;">0</span>
+            <label style="font-size: 12px; opacity: 0.9;">Puntuales</label>
+        </div>
+        <div style="background: #f39c12; color: white; padding: 15px; border-radius: 12px; text-align: center;">
+            <span id="kpi-tardanza" style="display: block; font-size: 24px; font-weight: bold;">0</span>
+            <label style="font-size: 12px; opacity: 0.9;">Tardanzas</label>
+        </div>
+        <div style="background: #e74c3c; color: white; padding: 15px; border-radius: 12px; text-align: center;">
+            <span id="kpi-ausente" style="display: block; font-size: 24px; font-weight: bold;">0</span>
+            <label style="font-size: 12px; opacity: 0.9;">Ausentes</label>
+        </div>
+    </div>
 
-            <div style="margin-top: 25px; background: white; padding: 15px; border-radius: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
-                <label style="font-weight: bold; font-size: 13px; color: #555;">DISTRIBUCIÓN DE ASISTENCIA</label>
-                <div style="display: flex; height: 30px; border-radius: 15px; overflow: hidden; margin-top: 10px; background: #eee;">
-                    <div id="bar-p" style="background: #2ecc71; width: 0%; transition: width 0.5s;"></div>
-                    <div id="bar-t" style="background: #f39c12; width: 0%; transition: width 0.5s;"></div>
-                    <div id="bar-a" style="background: #e74c3c; width: 0%; transition: width 0.5s;"></div>
-                </div>
-                
-                <div style="margin-top: 15px; font-size: 13px;">
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
-                        <span>🟢 Puntual: <b id="pct-p">0%</b></span>
-                        <span>🟠 Tardanza: <b id="pct-t">0%</b></span>
-                        <span>🔴 Ausente: <b id="pct-a">0%</b></span>
-                    </div>
-                </div>
-            </div>
+    <div style="margin-top: 25px; background: white; padding: 15px; border-radius: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+        <label style="font-weight: bold; font-size: 13px; color: #555;">DISTRIBUCIÓN DE ASISTENCIA</label>
+        <div style="display: flex; height: 30px; border-radius: 15px; overflow: hidden; margin-top: 10px; background: #eee;">
+            <div id="bar-p" style="background: #2ecc71; width: 0%; transition: width 0.5s;"></div>
+            <div id="bar-t" style="background: #f39c12; width: 0%; transition: width 0.5s;"></div>
+            <div id="bar-a" style="background: #e74c3c; width: 0%; transition: width 0.5s;"></div>
         </div>
         
+        <div style="margin-top: 15px; font-size: 13px;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                <span>🟢 Puntual: <b id="pct-p">0%</b></span>
+                <span>🟠 Tardanza: <b id="pct-t">0%</b></span>
+                <span>🔴 Ausente: <b id="pct-a">0%</b></span>
+            </div>
+        </div>
+    </div>
+</div>
         <div class="overlay" id="overlay" onclick="toggleMenu()"></div>
 
         <div class="container">
@@ -354,13 +342,13 @@
     </div>
 
 <script>
-    const scriptURL = 'https://script.google.com/macros/s/AKfycbystiNASVm2j9rIyqe2BIRt2p4cENE1K143Jo0Kxrv5KlKPf5sTJzRYlFO-8q44tE3l8A/exec';
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbylOcUFT9gBLfQ1wylI-htq3ruPRbyXHPs3jtJKpqHt7t-WSeq5a-oSfZVwus92maN-0g/exec';
     const html5QrCode = new Html5Qrcode("reader");
 
    // --- LÓGICA SPLASH SCREEN (CORREGIDA) ---
 window.onload = function() {
     const splash = document.getElementById('splash-screen');
-    const mainContent = document.getElementById('main-app-content'); 
+    const mainContent = document.getElementById('main-app-content'); // Verifica que este ID sea igual al de tu div principal
     const progressBar = document.getElementById('progress-bar');
     
     let width = 0;
@@ -378,6 +366,7 @@ window.onload = function() {
                     mainContent.style.visibility = 'visible';
                     mainContent.style.opacity = '1';
                 }
+                // IMPORTANTE: Al terminar, forzamos el inicio en Reporte de Asistencia
                 showSection('escaneo', 'Reporte de Asistencia');
             }, 600);
         } else {
@@ -388,31 +377,39 @@ window.onload = function() {
 };
 
     function showSection(id, title) {
+    // 1. Ocultar todas las secciones
     document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
     
+    // 2. Mostrar la sección seleccionada
     const targetSection = document.getElementById(id);
     if (targetSection) {
         targetSection.classList.add('active');
     }
 
+    // 3. Actualizar el título de la cabecera
     const viewTitle = document.getElementById('view-title');
     if (viewTitle) {
         viewTitle.innerText = title;
     }
 
+    // --- LA SOLUCIÓN AQUÍ ---
+    // 4. Cerrar el menú automáticamente al elegir la opción
     const sideMenu = document.getElementById('sideMenu');
     if (sideMenu) {
         sideMenu.classList.remove('active');
     }
 
+    // 5. Lógica adicional (iniciar cámara o cargar reportes)
     if (id === 'escaneo') {
         iniciarCamara();
     } else {
+        // Si no es escaneo, apagamos la cámara para ahorrar batería
         if (typeof html5QrCode !== 'undefined') {
             html5QrCode.stop().catch(() => {}); 
         }
     }
 
+    // Si es la sección de reportes, cargar los datos de inmediato
     if (id === 'reportes') {
         generarEstadisticas();
     }
@@ -423,11 +420,12 @@ window.onload = function() {
         document.getElementById('field-dni').style.display = (type === 'individual') ? 'block' : 'none';
         document.getElementById('field-seccion').style.display = (type === 'seccion') ? 'flex' : 'none';
     }
-    
     function toggleFiltrosDetallados() {
     const tipo = document.getElementById('rep-filtro-tipo').value;
+    // Ocultar todos
     document.querySelectorAll('.f-grupo').forEach(div => div.style.display = 'none');
     
+    // Mostrar el seleccionado
     if(tipo === 'general') document.getElementById('f-rango').style.display = 'block';
     if(tipo === 'fecha') document.getElementById('f-fecha').style.display = 'block';
     if(tipo === 'mes') document.getElementById('f-mes').style.display = 'block';
@@ -435,18 +433,13 @@ window.onload = function() {
     if(tipo === 'alumno') document.getElementById('f-alumno').style.display = 'block';
 }
 
-// NUEVA FUNCIÓN PARA ENVIAR LA FECHA Y SECCIÓN EN CONJUNTO
+// Actualiza tu función generarEstadisticas para enviar TODOS los filtros
 function generarEstadisticas() {
     const filtro = document.getElementById('rep-filtro-tipo').value;
     const inputFecha = document.getElementById('r-fecha').value; 
     
-    // Captura dinámica: Si es filtro fecha lee el input combinado, si es filtro sección lee el suyo
-    let seccionValor = "";
-    if (filtro === 'seccion') {
-        seccionValor = document.getElementById('r-seccion').value.trim().toUpperCase();
-    } else if (filtro === 'fecha') {
-        seccionValor = document.getElementById('r-fecha-seccion').value.trim().toUpperCase();
-    }
+    // Convertir el input de sección a mayúsculas para emparejar con la base de datos
+    const seccionValor = document.getElementById('r-seccion').value.trim().toUpperCase();
 
     const fechaAEnviar = (filtro === 'fecha' && inputFecha) ? inputFecha : new Date().toISOString().split('T')[0];
 
@@ -462,17 +455,19 @@ function generarEstadisticas() {
             filtro: filtro,
             fecha: fechaAEnviar, 
             mes: document.getElementById('r-mes').value,
-            seccion: seccionValor, 
+            seccion: seccionValor, // Enviado limpio en mayúsculas
             dni: document.getElementById('r-dni').value
         })
     })
     .then(r => r.json())
     .then(data => {
+        // Actualizar números en tarjetas KPI
         document.getElementById('kpi-total').innerText = data.totalAlumnos;
         document.getElementById('kpi-puntual').innerText = data.puntuales;
         document.getElementById('kpi-tardanza').innerText = data.tardanzas;
         document.getElementById('kpi-ausente').innerText = data.ausentes;
 
+        // Actualizar el ancho dinámico de las barras gráficas
         const total = data.totalAlumnos || 1;
         const pP = (data.puntuales / total * 100).toFixed(1);
         const pT = (data.tardanzas / total * 100).toFixed(1);
@@ -482,6 +477,7 @@ function generarEstadisticas() {
         document.getElementById('bar-t').style.width = pT + "%";
         document.getElementById('bar-a').style.width = pA + "%";
         
+        // Actualizar los porcentajes de texto de la leyenda si existen
         if(document.getElementById('pct-p')) document.getElementById('pct-p').innerText = pP + "%";
         if(document.getElementById('pct-t')) document.getElementById('pct-t').innerText = pT + "%";
         if(document.getElementById('pct-a')) document.getElementById('pct-a').innerText = pA + "%";
@@ -491,7 +487,6 @@ function generarEstadisticas() {
         document.querySelectorAll('[id^="kpi-"]').forEach(el => el.innerText = "Error");
     });
 }
-
     function actualizarTablero(data) {
     document.getElementById('kpi-total').innerText = data.totalAlumnos;
     document.getElementById('kpi-puntual').innerText = data.puntuales;
@@ -503,13 +498,13 @@ function generarEstadisticas() {
     document.getElementById('bar-t').style.width = (data.tardanzas / total * 100) + "%";
     document.getElementById('bar-a').style.width = (data.ausentes / total * 100) + "%";
     
+    // Actualizar leyendas de porcentaje
     document.getElementById('pct-p').innerText = (data.puntuales / total * 100).toFixed(1) + "%";
     document.getElementById('pct-t').innerText = (data.tardanzas / total * 100).toFixed(1) + "%";
     document.getElementById('pct-a').innerText = (data.ausentes / total * 100).toFixed(1) + "%";
 }
-
     function onScanSuccess(decodedText) {
-    if (isProcessing) return; 
+    if (isProcessing) return; // Evita escaneos múltiples del mismo código
     isProcessing = true;
 
     const statusMsg = document.getElementById('status-msg');
@@ -525,11 +520,13 @@ function generarEstadisticas() {
     .then(r => r.json())
     .then(res => {
         if (res.status === "success") {
+            // Sonido de éxito (opcional)
             if (typeof navigator.vibrate === "function") navigator.vibrate(100);
 
             let color = res.estado === "TARDANZA" ? "red" : "green";
             if (res.estado === "FUERA DE HORARIO") color = "gray";
 
+            // Mostramos quién entró y su estado
             statusMsg.innerHTML = `
                 <div style="border: 2px solid ${color}; padding: 10px; border-radius: 10px; background: white;">
                     <div style="font-size: 14px; color: #333;">${res.nombre}</div>
@@ -540,9 +537,12 @@ function generarEstadisticas() {
             statusMsg.innerHTML = "<span style='color:red'>❌ No registrado</span>";
         }
 
+        // --- LA CLAVE PARA ESCANEO CONTINUO ---
+        // Esperamos 2.5 segundos para que veas el nombre y luego limpiamos para el SIGUIENTE
         setTimeout(() => {
-            isProcessing = false; 
+            isProcessing = false; // Desbloqueamos para el siguiente escaneo
             statusMsg.innerHTML = "Esperando siguiente código QR...";
+            // NO llamamos a html5QrCode.stop(), así la cámara sigue encendida
         }, 2500); 
     })
     .catch(err => {
@@ -641,40 +641,79 @@ function generarEstadisticas() {
 
     function iniciarCamara() {
     const config = { 
-        fps: 15, 
+        fps: 15, // Velocidad de cuadros
         qrbox: { width: 250, height: 250 }, 
         aspectRatio: 1.0 
     };
 
     html5QrCode.start({ facingMode: "environment" }, config, onScanSuccess)
     .then(() => {
-        isProcessing = false; 
+        isProcessing = false; // Nos aseguramos de que empiece desbloqueado
         document.getElementById('status-msg').innerText = "Cámara lista. Escanee el carnet.";
     })
     .catch(err => {
         document.getElementById('status-msg').innerText = "Error al iniciar cámara.";
     });
 }
+function generarEstadisticas() {
+    const filtro = document.getElementById('rep-filtro-tipo').value;
+    const inputFecha = document.getElementById('r-fecha').value; 
+    
+    // Si el filtro es 'fecha', enviamos lo que el usuario marcó
+    // Si no, enviamos la fecha de hoy formateada
+    const fechaAEnviar = (filtro === 'fecha' && inputFecha) ? inputFecha : new Date().toISOString().split('T')[0];
 
+    document.getElementById('kpi-total').innerText = "⏳";
+
+    fetch(scriptURL, {
+        method: 'POST',
+        body: JSON.stringify({ 
+            action: 'obtenerEstadisticas', 
+            filtro: filtro,
+            fecha: fechaAEnviar, 
+            mes: document.getElementById('r-mes').value,
+            seccion: document.getElementById('r-seccion').value,
+            dni: document.getElementById('r-dni').value
+        })
+    })
+    .then(r => r.json())
+    .then(data => {
+        document.getElementById('kpi-total').innerText = data.totalAlumnos;
+        document.getElementById('kpi-puntual').innerText = data.puntuales;
+        document.getElementById('kpi-tardanza').innerText = data.tardanzas;
+        document.getElementById('kpi-ausente').innerText = data.ausentes;
+
+        const total = data.totalAlumnos || 1;
+        document.getElementById('bar-p').style.width = (data.puntuales / total * 100) + "%";
+        document.getElementById('bar-t').style.width = (data.tardanzas / total * 100) + "%";
+        document.getElementById('bar-a').style.width = (data.ausentes / total * 100) + "%";
+    });
+}
+// Función para abrir y cerrar el menú manualmente
 function toggleMenu() {
     const menu = document.getElementById('sideMenu');
     menu.classList.toggle('active');
 }
 
+// Función para cambiar de sección y CERRAR el menú
 function showSection(id, title) {
+    // 1. Ocultar todas las secciones
     document.querySelectorAll('.section').forEach(s => {
         s.classList.remove('active');
         s.style.display = 'none';
     });
 
+    // 2. Mostrar la sección seleccionada
     const targetSection = document.getElementById(id);
     if (targetSection) {
         targetSection.classList.add('active');
         targetSection.style.display = 'block';
     }
 
+    // 3. ACTUALIZACIÓN DE TÍTULOS (Corregido para las 4 secciones)
     const viewTitle = document.getElementById('view-title');
     if (viewTitle) {
+        // Si el título es undefined, asignamos el nombre según el ID de la sección
         if (!title || title === 'undefined') {
             if (id === 'escaneo') viewTitle.innerText = 'Asistencia QR';
             else if (id === 'reportes') viewTitle.innerText = 'Reporte de Asistencia';
@@ -682,15 +721,18 @@ function showSection(id, title) {
             else if (id === 'impresion') viewTitle.innerText = 'Imprimir Carnets';
             else viewTitle.innerText = 'Sistema Adprint';
         } else {
+            // Si el título sí viene correctamente, lo usamos
             viewTitle.innerText = title;
         }
     }
 
+    // 4. Cerrar el menú lateral
     const sideMenu = document.getElementById('sideMenu');
     if (sideMenu) {
         sideMenu.classList.remove('active');
     }
 
+    // 5. Lógica de Cámara
     if (id === 'escaneo') {
         iniciarCamara();
     } else {
@@ -699,11 +741,12 @@ function showSection(id, title) {
         }
     }
 
+    // 6. Lógica de Reportes
     if (id === 'reportes') {
         generarEstadisticas();
     }
 }
-
+// Actualizar showSection para cargar estadísticas
 const originalShowSection = showSection;
 showSection = function(id) {
     originalShowSection(id);

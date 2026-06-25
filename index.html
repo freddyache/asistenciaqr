@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sistema Aula PIP - Gestión Integral</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="https://unpkg.com/html5-qrcode"></script>
     <style>
         :root {
@@ -153,7 +155,7 @@
         <div id="reportes" class="section" style="display:none;">
             <h2 style="text-align: center; color: var(--dark); margin-top: 0;">📊 Reporte de Asistencia</h2>
             
-            <div class="card">
+            <div class="card no-print">
                 <div class="form-group">
                     <label>Tipo de Reporte:</label>
                     <select id="rep-tipo" class="form-control" onchange="alternarCamposFiltro()">
@@ -167,11 +169,11 @@
                 <div id="div-grado" class="form-group" style="display:none;">
                     <label>Seleccione Grado:</label>
                     <select id="r-grado" class="form-control">
-                        <option value="1">1° de Secundaria</option>
-                        <option value="2">2° de Secundaria</option>
-                        <option value="3">3° de Secundaria</option>
-                        <option value="4">4° de Secundaria</option>
-                        <option value="5">5° de Secundaria</option>
+                        <option value="1">1° de Primaria</option>
+                        <option value="2">2° de Primaria</option>
+                        <option value="3">3° de Primaria</option>
+                        <option value="4">4° de Primaria</option>
+                        <option value="5">5° de Primaria</option>
                     </select>
                 </div>
 
@@ -219,146 +221,100 @@
                 <button class="btn-main btn-green" onclick="generarEstadisticas()" style="margin-top:10px;">Consultar Reporte</button>
             </div>
 
-            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
-                <div style="background: #4a90e2; color: white; padding: 12px; border-radius: 12px; text-align: center;">
-                    <span id="kpi-total" style="display: block; font-size: 22px; font-weight: bold;">0</span>
-                    <label style="font-size: 11px; opacity: 0.9;">Total Alumnos</label>
+            <div id="area-reporte-alumno" class="card" style="display: none; padding: 25px; border-radius: 15px;">
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <h3 style="margin: 0; color: #1a253a;">REPORTE MENSUAL DE ASISTENCIA</h3>
+                    <p id="lbl-periodo-alumno" style="margin: 5px 0; font-size: 14px; color: #666; font-weight: bold;"></p>
                 </div>
-                <div style="background: #2ecc71; color: white; padding: 12px; border-radius: 12px; text-align: center;">
-                    <span id="kpi-puntual" style="display: block; font-size: 22px; font-weight: bold;">0</span>
-                    <label style="font-size: 11px; opacity: 0.9;">Puntuales</label>
+                
+                <div style="background: #f1f5f9; padding: 15px; border-radius: 10px; margin-bottom: 20px; font-size: 14px;">
+                    <div style="margin-bottom: 5px;">👤 <b>Estudiante:</b> <span id="lbl-nombre-alumno">-</span></div>
+                    <div style="display: flex; justify-content: space-between;">
+                        <div>🪪 <b>DNI:</b> <span id="lbl-dni-alumno">-</span></div>
+                        <div>🏫 <b>Grado y Secc:</b> <span id="lbl-grado-alumno">-</span></div>
+                    </div>
                 </div>
-                <div style="background: #f39c12; color: white; padding: 12px; border-radius: 12px; text-align: center;">
-                    <span id="kpi-tardanza" style="display: block; font-size: 22px; font-weight: bold;">0</span>
-                    <label style="font-size: 11px; opacity: 0.9;">Tardanzas</label>
+
+                <div style="display: flex; align-items: center; justify-content: center; gap: 20px; flex-wrap: wrap; margin-bottom: 20px;">
+                    <div style="width: 180px; height: 180px; position: relative;">
+                        <canvas id="chartAsistenciaAlumno"></canvas>
+                    </div>
+                    
+                    <div style="display: flex; flex-direction: column; gap: 8px; flex: 1; min-width: 180px;">
+                        <div style="display: flex; align-items: center; justify-content: space-between; background: #e8f5e9; border: 1px solid #c8e6c9; padding: 10px; border-radius: 8px; color: #2e7d32; font-weight: bold; font-size: 13px;">
+                            <span>✓ Asistencias:</span> <span id="box-puntuales">0</span>
+                        </div>
+                        <div style="display: flex; align-items: center; justify-content: space-between; background: #fff3e0; border: 1px solid #ffe0b2; padding: 10px; border-radius: 8px; color: #ef6c00; font-weight: bold; font-size: 13px;">
+                            <span>🕒 Tardanzas:</span> <span id="box-tardanzas">0</span>
+                        </div>
+                        <div style="display: flex; align-items: center; justify-content: space-between; background: #fffde7; border: 1px solid #fff9c4; padding: 10px; border-radius: 8px; color: #fbc02d; font-weight: bold; font-size: 13px;">
+                            <span>🟡 Tardanzas Just.:</span> <span>0</span>
+                        </div>
+                        <div style="display: flex; align-items: center; justify-content: space-between; background: #ffebee; border: 1px solid #ffcdd2; padding: 10px; border-radius: 8px; color: #c62828; font-weight: bold; font-size: 13px;">
+                            <span>❓ Faltas (Ausente):</span> <span id="box-ausentes">0</span>
+                        </div>
+                        <div style="display: flex; align-items: center; justify-content: space-between; background: #f3e5f5; border: 1px solid #e1bee7; padding: 10px; border-radius: 8px; color: #6a1b9a; font-weight: bold; font-size: 13px;">
+                            <span>🟣 Faltas Just.:</span> <span>0</span>
+                        </div>
+                    </div>
                 </div>
-                <div style="background: #e74c3c; color: white; padding: 12px; border-radius: 12px; text-align: center;">
-                    <span id="kpi-ausente" style="display: block; font-size: 22px; font-weight: bold;">0</span>
-                    <label style="font-size: 11px; opacity: 0.9;">Ausentes</label>
-                </div>
+
+                <button class="btn-main btn-dark no-print" onclick="exportarAlumnoPDF()">📥 Exportar a PDF</button>
             </div>
 
-            <div id="panel-matriz-colegio" class="card" style="margin-top: 15px; display: none;">
-                <label style="font-weight: bold; color: #333; font-size: 13px;">🗺️ MATRIZ DE ASISTENCIA / MAPA DE CALOR</label>
-                <table class="tabla-calor">
-                    <thead>
-                        <tr>
-                            <th>Sec.</th>
-                            <th>Matr.</th>
-                            <th>Asist.</th>
-                            <th>Tard.</th>
-                            <th>% Asist</th>
-                        </tr>
-                    </thead>
-                    <tbody id="cuerpo-matriz">
-                        </tbody>
-                </table>
-            </div>
-
-            <div class="card" style="margin-top: 15px;">
-                <label style="font-weight: bold; font-size: 12px; color: #555;">DISTRIBUCIÓN DE ASISTENCIA GLOBAL</label>
-                <div style="display: flex; height: 25px; border-radius: 15px; overflow: hidden; margin-top: 8px; background: #eee;">
-                    <div id="bar-p" style="background: #2ecc71; width: 0%; transition: width 0.5s;"></div>
-                    <div id="bar-t" style="background: #f39c12; width: 0%; transition: width 0.5s;"></div>
-                    <div id="bar-a" style="background: #e74c3c; width: 0%; transition: width 0.5s;"></div>
+            <div id="panel-general-colegio">
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
+                    <div style="background: #4a90e2; color: white; padding: 12px; border-radius: 12px; text-align: center;">
+                        <span id="kpi-total" style="display: block; font-size: 22px; font-weight: bold;">0</span>
+                        <label style="font-size: 11px; opacity: 0.9;">Total Alumnos</label>
+                    </div>
+                    <div style="background: #2ecc71; color: white; padding: 12px; border-radius: 12px; text-align: center;">
+                        <span id="kpi-puntual" style="display: block; font-size: 22px; font-weight: bold;">0</span>
+                        <label style="font-size: 11px; opacity: 0.9;">Puntuales</label>
+                    </div>
+                    <div style="background: #f39c12; color: white; padding: 12px; border-radius: 12px; text-align: center;">
+                        <span id="kpi-tardanza" style="display: block; font-size: 22px; font-weight: bold;">0</span>
+                        <label style="font-size: 11px; opacity: 0.9;">Tardanzas</label>
+                    </div>
+                    <div style="background: #e74c3c; color: white; padding: 12px; border-radius: 12px; text-align: center;">
+                        <span id="kpi-ausente" style="display: block; font-size: 22px; font-weight: bold;">0</span>
+                        <label style="font-size: 11px; opacity: 0.9;">Ausentes</label>
+                    </div>
                 </div>
-                <div style="margin-top: 10px; font-size: 12px; display: flex; justify-content: space-between;">
-                    <span>🟢 Puntual: <b id="pct-p">0%</b></span>
-                    <span>🟠 Tardanza: <b id="pct-t">0%</b></span>
-                    <span>🔴 Ausente: <b id="pct-a">0%</b></span>
+
+                <div id="panel-matriz-colegio" class="card" style="margin-top: 15px; display: none;">
+                    <label style="font-weight: bold; color: #333; font-size: 13px;">🗺️ MATRIZ DE ASISTENCIA / MAPA DE CALOR</label>
+                    <table class="tabla-calor">
+                        <thead>
+                            <tr>
+                                <th>Sec.</th>
+                                <th>Matr.</th>
+                                <th>Asist.</th>
+                                <th>Tard.</th>
+                                <th>% Asist</th>
+                            </tr>
+                        </thead>
+                        <tbody id="cuerpo-matriz"></tbody>
+                    </table>
+                </div>
+
+                <div class="card" style="margin-top: 15px;">
+                    <label style="font-weight: bold; font-size: 12px; color: #555;">DISTRIBUCIÓN DE ASISTENCIA GLOBAL</label>
+                    <div style="display: flex; height: 25px; border-radius: 15px; overflow: hidden; margin-top: 8px; background: #eee;">
+                        <div id="bar-p" style="background: #2ecc71; width: 0%; transition: width 0.5s;"></div>
+                        <div id="bar-t" style="background: #f39c12; width: 0%; transition: width 0.5s;"></div>
+                        <div id="bar-a" style="background: #e74c3c; width: 0%; transition: width 0.5s;"></div>
+                    </div>
+                    <div style="margin-top: 10px; font-size: 12px; display: flex; justify-content: space-between;">
+                        <span>🟢 Puntual: <b id="pct-p">0%</b></span>
+                        <span>🟠 Tardanza: <b id="pct-t">0%</b></span>
+                        <span>🔴 Ausente: <b id="pct-a">0%</b></span>
+                    </div>
                 </div>
             </div>
         </div>
-        
-        <div class="overlay" id="overlay" onclick="toggleMenu()"></div>
-
-        <div class="container">
-            <div class="header">
-                <h1 id="view-title">Asistencia QR</h1>
-            </div>
-
-            <div id="escaneo" class="section active">
-                <div class="camera-box">
-                    <div id="status-msg">Iniciando cámara...</div>
-                    <div id="reader"></div>
-                </div>
-                <div class="form-group" style="margin-top: 20px;">
-                    <label>Tipo de Registro:</label>
-                    <select id="status-select" class="form-control">
-                        <option value="ENTRADA">INGRESO</option>
-                        <option value="SALIDA">SALIDA</option>
-                    </select>
-                </div>
-            </div>
-
-            <div id="agregar" class="section">
-                <div class="form-group">
-                    <label>DNI (ID):</label>
-                    <input type="number" id="new-dni" class="form-control" placeholder="Número de DNI">
-                </div>
-                <div class="form-group">
-                    <label>Nombres:</label>
-                    <input type="text" id="new-nombres" class="form-control" placeholder="EJ: JUAN ROBERTO">
-                </div>
-                <div class="form-group">
-                    <label>Apellidos:</label>
-                    <input type="text" id="new-apellidos" class="form-control" placeholder="EJ: PEREZ GARCIA">
-                </div>
-                <div style="display: flex; gap: 10px;">
-                    <div style="flex:1">
-                        <label>Grado:</label>
-                        <select id="new-grado" class="form-control">
-                            <option value="1">1°</option><option value="2">2°</option><option value="3">3°</option><option value="4">4°</option><option value="5">5°</option>
-                        </select>
-                    </div>
-                    <div style="flex:1">
-                        <label>Sección:</label>
-                        <select id="new-seccion" class="form-control">
-                            <option value="A">A</option><option value="B">B</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="form-group" style="margin-top:15px;">
-                    <label>Teléfono:</label>
-                    <input type="tel" id="new-celular" class="form-control" placeholder="999888777">
-                </div>
-                <button class="btn-main btn-blue" onclick="guardarAlumno()">Guardar Estudiante</button>
-            </div>
-
-            <div id="impresion" class="section">
-                <div class="form-group">
-                    <label>Modo de Generación:</label>
-                    <select id="p-tipo" class="form-control" onchange="togglePrintFields()">
-                        <option value="individual">DNI Específico</option>
-                        <option value="seccion">Sección Completa</option>
-                        <option value="todos">Toda la Institución</option>
-                    </select>
-                </div>
-                <div id="field-dni" class="form-group">
-                    <label>Ingrese DNI:</label>
-                    <input type="number" id="p-dni" class="form-control" placeholder="Ej: 71234567">
-                </div>
-                <div id="field-seccion" class="form-group" style="display:none; gap:10px;">
-                    <div style="flex:1">
-                        <label>Grado:</label>
-                        <select id="p-grado" class="form-control">
-                            <option value="1">1°</option><option value="2">2°</option><option value="3">3°</option><option value="4">4°</option><option value="5">5°</option>
-                        </select>
-                    </div>
-                    <div style="flex:1">
-                        <label>Sección:</label>
-                        <select id="p-seccion" class="form-control">
-                            <option value="A">A</option><option value="B">B</option>
-                        </select>
-                    </div>
-                </div>
-                <button class="btn-main btn-dark" onclick="generarPDF()">Generar PDF (9 por hoja)</button>
-            </div>
-        </div>
-    </div>
-
 <script>
-    const scriptURL = 'https://script.google.com/macros/s/AKfycbw4b8iBXWpbMB939KpTrlHKmDoMfC3AjoUeQD9ZPhCgyvQARg1hRBv_PFYM8LZPe5ad_A/exec'; 
+    const scriptURL = 'https://script.google.com/macros/s/AKfycby7QS9lAQ4tSuXgs_GijANcuF9NJPRTJfTn0asYLQ-TfKxFY5lsTwuDllNztJjKcJobqA/exec'; 
     const html5QrCode = new Html5Qrcode("reader");
     let isProcessing = false;
 
@@ -404,6 +360,8 @@ window.onload = function() {
     }
 
     // PROCESAMIENTO Y DIBUJO DEL MAPA DE CALOR
+    let miGraficoAlumno = null; // Variable global para controlar la instancia del gráfico
+
     function generarEstadisticas() {
         const tipoReporte = document.getElementById('rep-tipo').value;
         const filtroFecha = document.getElementById('rep-fecha-tipo').value;
@@ -432,68 +390,145 @@ window.onload = function() {
         })
         .then(r => r.json())
         .then(data => {
-            // 1. Cargar KPIs Superiores
-            document.getElementById('kpi-total').innerText = data.totalAlumnos;
-            document.getElementById('kpi-puntual').innerText = data.puntuales;
-            document.getElementById('kpi-tardanza').innerText = data.tardanzas;
-            document.getElementById('kpi-ausente').innerText = data.ausentes;
+            const panelAlumno = document.getElementById('area-reporte-alumno');
+            const panelGeneral = document.getElementById('panel-general-colegio');
 
-            const total = data.totalAlumnos || 1;
-            const pP = (data.puntuales / total * 100).toFixed(1);
-            const pT = (data.tardanzas / total * 100).toFixed(1);
-            const pA = (data.ausentes / total * 100).toFixed(1);
+            if (tipoReporte === "alumno") {
+                // Muestra el módulo del Alumno y oculta los resúmenes globales
+                panelAlumno.style.display = "block";
+                panelGeneral.style.display = "none";
 
-            document.getElementById('bar-p').style.width = pP + "%";
-            document.getElementById('bar-t').style.width = pT + "%";
-            document.getElementById('bar-a').style.width = pA + "%";
-            
-            document.getElementById('pct-p').innerText = pP + "%";
-            document.getElementById('pct-t').innerText = pT + "%";
-            document.getElementById('pct-a').innerText = pA + "%";
+                // Inserción de Datos Personales devueltos por el servidor
+                document.getElementById('lbl-nombre-alumno').innerText = data.alumnoInfo ? data.alumnoInfo.nombre : "No Encontrado";
+                document.getElementById('lbl-dni-alumno').innerText = payload.dni;
+                document.getElementById('lbl-grado-alumno').innerText = data.alumnoInfo ? data.alumnoInfo.gradoSeccion : "-";
+                document.getElementById('lbl-periodo-alumno').innerText = filtroFecha === "mes" ? payload.mes : "Periodo Consultado";
 
-            // 2. Renderizar Tabla del Mapa de Calor si es "Todo el Colegio"
-            const panelMatriz = document.getElementById('panel-matriz-colegio');
-            const cuerpoMatriz = document.getElementById('cuerpo-matriz');
-            
-            if (tipoReporte === "todos" && data.matriz) {
-                panelMatriz.style.display = "block";
-                cuerpoMatriz.innerHTML = ""; // Limpiar tabla anterior
+                // Actualizar bloques de la derecha
+                document.getElementById('box-puntuales').innerText = data.puntuales;
+                document.getElementById('box-tardanzas').innerText = data.tardanzas;
+                document.getElementById('box-ausentes').innerText = data.ausentes;
 
-                Object.keys(data.matriz).forEach(key => {
-                    const item = data.matriz[key];
-                    const asistieron = item.puntuales + item.tardanzas;
-                    const porcentaje = item.matriculados > 0 ? (asistieron / item.matriculados * 100) : 0;
-                    
-                    // Lógica del mapa de calor basada en el porcentaje de asistencia
-                    let backColor = "rgba(231, 76, 60, 0.2)"; // Rojo suave si es bajo (<60%)
-                    let textColor = "#c0392b";
-                    
-                    if (porcentaje >= 85) {
-                        backColor = "rgba(46, 204, 113, 0.25)"; // Verde si es óptimo
-                        textColor = "#27ae60";
-                    } else if (porcentaje >= 60) {
-                        backColor = "rgba(241, 196, 15, 0.25)"; // Amarillo si es regular
-                        textColor = "#d35400";
+                // Destruir gráfico previo si existe para evitar superposiciones
+                if(miGraficoAlumno) { miGraficoAlumno.destroy(); }
+
+                // Crear Gráfico Circular usando Chart.js (Estilo exacto de la muestra)
+                const ctx = document.getElementById('chartAsistenciaAlumno').getContext('2d');
+                
+                // Si todo está en 0, graficamos una base gris neutra
+                const totalValores = data.puntuales + data.tardanzas + data.ausentes;
+                const dataSetValues = totalValores === 0 ? [0, 0, 0, 1] : [data.puntuales, data.tardanzas, data.ausentes, 0];
+                const dataSetColors = totalValores === 0 ? ['#2ecc71', '#f39c12', '#e74c3c', '#bdc3c7'] : ['#2ecc71', '#f39c12', '#e74c3c', '#bdc3c7'];
+
+                miGraficoAlumno = new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Asistencias', 'Tardanzas', 'Ausentes'],
+                        datasets: [{
+                            data: [data.puntuales, data.tardanzas, data.ausentes],
+                            backgroundColor: ['#4caf50', '#ff9800', '#f44336'],
+                            borderWidth: 0
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false } // Ocultamos leyenda por defecto, ya que creamos las cajas personalizadas
+                        },
+                        cutout: '0%' // Define gráfico circular completo (100% relleno tipo Pie)
                     }
-
-                    const filaHTML = `
-                        <tr>
-                            <td class="seccion-label">${key.charAt(0)}° ${key.charAt(1)}</td>
-                            <td>${item.matriculados}</td>
-                            <td style="color:#27ae60;">${item.puntuales}</td>
-                            <td style="color:#f39c12;">${item.tardanzas}</td>
-                            <td style="background-color: ${backColor}; color: ${textColor};">${porcentaje.toFixed(0)}%</td>
-                        </tr>
-                    `;
-                    cuerpoMatriz.insertAdjacentHTML('beforeend', filaHTML);
                 });
+
             } else {
-                panelMatriz.style.display = "none";
+                // Si es un reporte grupal/colegio
+                panelAlumno.style.display = "none";
+                panelGeneral.style.display = "block";
+
+                document.getElementById('kpi-total').innerText = data.totalAlumnos;
+                document.getElementById('kpi-puntual').innerText = data.puntuales;
+                document.getElementById('kpi-tardanza').innerText = data.tardanzas;
+                document.getElementById('kpi-ausente').innerText = data.ausentes;
+
+                const total = data.totalAlumnos || 1;
+                const pP = (data.puntuales / total * 100).toFixed(1);
+                const pT = (data.tardanzas / total * 100).toFixed(1);
+                const pA = (data.ausentes / total * 100).toFixed(1);
+
+                document.getElementById('bar-p').style.width = pP + "%";
+                document.getElementById('bar-t').style.width = pT + "%";
+                document.getElementById('bar-a').style.width = pA + "%";
+                
+                document.getElementById('pct-p').innerText = pP + "%";
+                document.getElementById('pct-t').innerText = pT + "%";
+                document.getElementById('pct-a').innerText = pA + "%";
+
+                const panelMatriz = document.getElementById('panel-matriz-colegio');
+                const cuerpoMatriz = document.getElementById('cuerpo-matriz');
+                
+                if (tipoReporte === "todos" && data.matriz) {
+                    panelMatriz.style.display = "block";
+                    cuerpoMatriz.innerHTML = ""; 
+
+                    Object.keys(data.matriz).forEach(key => {
+                        const item = data.matriz[key];
+                        const asistieron = item.puntuales + item.tardanzas;
+                        const porcentaje = item.matriculados > 0 ? (asistieron / item.matriculados * 100) : 0;
+                        
+                        let backColor = "rgba(231, 76, 60, 0.2)"; 
+                        let textColor = "#c0392b";
+                        
+                        if (porcentaje >= 85) {
+                            backColor = "rgba(46, 204, 113, 0.25)"; 
+                            textColor = "#27ae60";
+                        } else if (porcentaje >= 60) {
+                            backColor = "rgba(241, 196, 15, 0.25)"; 
+                            textColor = "#d35400";
+                        }
+
+                        const filaHTML = `
+                            <tr>
+                                <td class="seccion-label">${key.charAt(0)}° ${key.charAt(1)}</td>
+                                <td>${item.matriculados}</td>
+                                <td style="color:#27ae60;">${item.puntuales}</td>
+                                <td style="color:#f39c12;">${item.tardanzas}</td>
+                                <td style="background-color: ${backColor}; color: ${textColor};">${porcentaje.toFixed(0)}%</td>
+                            </tr>
+                        `;
+                        cuerpoMatriz.insertAdjacentHTML('beforeend', filaHTML);
+                    });
+                } else {
+                    panelMatriz.style.display = "none";
+                }
             }
         })
         .catch(err => {
             console.error(err);
             document.querySelectorAll('[id^="kpi-"]').forEach(el => el.innerText = "Error");
+        });
+    }
+
+    // NUEVA FUNCIÓN PARA EXPORTAR EL CONTENEDOR A PDF LIMPIO
+    function exportarAlumnoPDF() {
+        const elemento = document.getElementById('area-reporte-alumno');
+        const nombreEst = document.getElementById('lbl-nombre-alumno').innerText;
+        
+        // Configuraciones de visualización para que el PDF no incluya el botón "Exportar"
+        const opciones = {
+            margin:       15,
+            filename:     `Reporte_Asistencia_${nombreEst.replace(/ /g, "_")}.pdf`,
+            image:        { type: 'jpeg', quality: 0.98 },
+            html2canvas:  { scale: 2, useCORS: true },
+            jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        };
+
+        // Ocultar botones temporalmente al procesar la captura
+        document.querySelectorAll('.no-print').forEach(el => el.style.display = 'none');
+
+        html2pdf().set(opciones).from(elemento).save().then(() => {
+            // Reestablecer la visibilidad de los botones en la interfaz web
+            document.querySelectorAll('.no-print').forEach(el => el.style.display = 'block');
+            document.getElementById('panel-matriz-colegio').style.display = "none";
         });
     }
 

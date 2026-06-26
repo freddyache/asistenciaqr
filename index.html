@@ -219,10 +219,18 @@
                 <button class="btn-main btn-green" onclick="generarEstadisticas()" style="margin-top:10px;">Consultar Reporte</button>
             </div>
 
+            <div id="panel-info-alumno" class="card" style="display: none; background: #fdfdfd; border-left: 5px solid var(--primary);">
+                <h4 style="margin: 0 0 5px 0; color: var(--dark);">👤 Datos del Estudiante</h4>
+                <div style="font-size: 14px; color: #333; line-height: 1.5;">
+                    <div><b>Nombres y Apellidos:</b> <span id="lbl-alumno-nombre">-</span></div>
+                    <div><b>Grado y Sección:</b> <span id="lbl-alumno-detalle">-</span></div>
+                </div>
+            </div>
+
             <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
                 <div style="background: #4a90e2; color: white; padding: 12px; border-radius: 12px; text-align: center;">
                     <span id="kpi-total" style="display: block; font-size: 22px; font-weight: bold;">0</span>
-                    <label style="font-size: 11px; opacity: 0.9;">Total Alumnos</label>
+                    <label id="lbl-kpi-total" style="font-size: 11px; opacity: 0.9;">Total Alumnos</label>
                 </div>
                 <div style="background: #2ecc71; color: white; padding: 12px; border-radius: 12px; text-align: center;">
                     <span id="kpi-puntual" style="display: block; font-size: 22px; font-weight: bold;">0</span>
@@ -239,20 +247,24 @@
             </div>
 
             <div id="panel-matriz-colegio" class="card" style="margin-top: 15px; display: none;">
-                <label style="font-weight: bold; color: #333; font-size: 13px;">🗺️ MATRIZ DE ASISTENCIA / MAPA DE CALOR</label>
+                <label style="font-weight: bold; color: #333; font-size: 13px;">🗺️ MATRIZ DE ASISTENCIA GLOBAL</label>
                 <table class="tabla-calor">
                     <thead>
-                        <tr>
-                            <th>Sec.</th>
-                            <th>Matr.</th>
-                            <th>Asist.</th>
-                            <th>Tard.</th>
-                            <th>% Asist</th>
-                        </tr>
+                        <tr><th>Sec.</th><th>Matr.</th><th>Asist.</th><th>Tard.</th><th>% Asist</th></tr>
                     </thead>
-                    <tbody id="cuerpo-matriz">
-                        </tbody>
+                    <tbody id="cuerpo-matriz"></tbody>
                 </table>
+            </div>
+
+            <div id="panel-matriz-alumno" class="card" style="margin-top: 15px; display: none;">
+                <label style="font-weight: bold; color: #333; font-size: 13px;">📅 MAPA DE CALOR DIARIO DEL ALUMNO</label>
+                <div id="contenedor-calor-alumno" style="display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; justify-content: center;">
+                    </div>
+                <div style="margin-top: 15px; font-size: 11px; display: flex; justify-content: center; gap: 10px;">
+                    <span><span style="display:inline-block; width:12px; height:12px; background:rgba(46,204,113,0.3); border:1px solid #2ecc71; vertical-align:middle; border-radius:2px;"></span> Puntual</span>
+                    <span><span style="display:inline-block; width:12px; height:12px; background:rgba(241,196,15,0.3); border:1px solid #f39c12; vertical-align:middle; border-radius:2px;"></span> Tardanza</span>
+                    <span><span style="display:inline-block; width:12px; height:12px; background:rgba(231,76,60,0.3); border:1px solid #e74c3c; vertical-align:middle; border-radius:2px;"></span> Ausente / Falta</span>
+                </div>
             </div>
 
             <div class="card" style="margin-top: 15px;">
@@ -358,7 +370,7 @@
     </div>
 
 <script>
-    const scriptURL = 'https://script.google.com/macros/s/AKfycbxmeKjJWf3jHHJglMhl7weYEJcmlgEg-8NS75soh9F4pHiAtzXZoFUBI2BFJgMLC4PH/exec'; 
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbzSoUnxcKr4lGs84BY_srJfN_UgXVAmSUNZ3GyEohxcBE3fyQiawlTgcSCMzcMtvwpcwg/exec'; 
     const html5QrCode = new Html5Qrcode("reader");
     let isProcessing = false;
 
@@ -425,6 +437,9 @@ window.onload = function() {
         if (filtroFecha === 'mes' && !payload.mes) return alert("Seleccione el mes.");
 
         document.querySelectorAll('[id^="kpi-"]').forEach(el => el.innerText = "⏳");
+        
+        // Ajustar etiqueta del primer KPI según contexto
+        document.getElementById('lbl-kpi-total').innerText = (tipoReporte === 'alumno') ? 'Días Evaluados' : 'Total Alumnos';
 
         fetch(scriptURL, {
             method: 'POST',
@@ -432,9 +447,15 @@ window.onload = function() {
         })
         .then(r => r.json())
         .then(data => {
+            // Manejar error de DNI no encontrado
+            if(data.error) {
+                alert(data.error);
+                return;
+            }
+
             // 1. Cargar KPIs Superiores
             document.getElementById('kpi-total').innerText = data.totalAlumnos;
-            document.getElementById('kpi-puntual').innerText = data.puntuales;
+            document.getElementById('kpi-punctual' ? 'kpi-puntual' : 'kpi-puntual').innerText = data.puntuales;
             document.getElementById('kpi-tardanza').innerText = data.tardanzas;
             document.getElementById('kpi-ausente').innerText = data.ausentes;
 
@@ -451,28 +472,32 @@ window.onload = function() {
             document.getElementById('pct-t').innerText = pT + "%";
             document.getElementById('pct-a').innerText = pA + "%";
 
-            // 2. Renderizar Tabla del Mapa de Calor si es "Todo el Colegio"
+            // Paneles Condicionales
             const panelMatriz = document.getElementById('panel-matriz-colegio');
             const cuerpoMatriz = document.getElementById('cuerpo-matriz');
-            
+            const panelInfoAlumno = document.getElementById('panel-info-alumno');
+            const panelMatrizAlumno = document.getElementById('panel-matriz-alumno');
+            const contenedorCalorAlumno = document.getElementById('contenedor-calor-alumno');
+
             if (tipoReporte === "todos" && data.matriz) {
                 panelMatriz.style.display = "block";
-                cuerpoMatriz.innerHTML = ""; // Limpiar tabla anterior
+                panelInfoAlumno.style.display = "none";
+                panelMatrizAlumno.style.display = "none";
+                cuerpoMatriz.innerHTML = ""; 
 
                 Object.keys(data.matriz).forEach(key => {
                     const item = data.matriz[key];
                     const asistieron = item.puntuales + item.tardanzas;
                     const porcentaje = item.matriculados > 0 ? (asistieron / item.matriculados * 100) : 0;
                     
-                    // Lógica del mapa de calor basada en el porcentaje de asistencia
-                    let backColor = "rgba(231, 76, 60, 0.2)"; // Rojo suave si es bajo (<60%)
+                    let backColor = "rgba(231, 76, 60, 0.2)"; 
                     let textColor = "#c0392b";
                     
                     if (porcentaje >= 85) {
-                        backColor = "rgba(46, 204, 113, 0.25)"; // Verde si es óptimo
+                        backColor = "rgba(46, 204, 113, 0.25)"; 
                         textColor = "#27ae60";
                     } else if (porcentaje >= 60) {
-                        backColor = "rgba(241, 196, 15, 0.25)"; // Amarillo si es regular
+                        backColor = "rgba(241, 196, 15, 0.25)"; 
                         textColor = "#d35400";
                     }
 
@@ -487,8 +512,45 @@ window.onload = function() {
                     `;
                     cuerpoMatriz.insertAdjacentHTML('beforeend', filaHTML);
                 });
+            } else if (tipoReporte === "alumno" && data.alumno) {
+                panelMatriz.style.display = "none";
+                panelInfoAlumno.style.display = "block";
+                panelMatrizAlumno.style.display = "block";
+                
+                // Setear Datos de Cabecera del Alumno
+                document.getElementById('lbl-alumno-nombre').innerText = data.alumno.nombreCompleto;
+                document.getElementById('lbl-alumno-detalle').innerText = data.alumno.gradoSeccion;
+
+                // Generar Celdas de Calendario / Mapa de Calor Diario
+                contenedorCalorAlumno.innerHTML = "";
+                data.cronogramaDiario.forEach(dia => {
+                    let colorFondo = "rgba(231, 76, 60, 0.15)"; // Ausente por defecto
+                    let colorBorde = "#e74c3c";
+                    let tituloEstado = "Ausente";
+
+                    if (dia.estado === "PUNTUAL") {
+                        colorFondo = "rgba(46, 204, 113, 0.25)";
+                        colorBorde = "#2ecc71";
+                        tituloEstado = "Puntual";
+                    } else if (dia.estado === "TARDANZA") {
+                        colorFondo = "rgba(241, 196, 15, 0.25)";
+                        colorBorde = "#f39c12";
+                        tituloEstado = "Tardanza";
+                    }
+
+                    // Celda Cuadrada Estilo GitHub
+                    const celdaHtml = `
+                        <div title="Fecha: ${dia.fechaLabel}\nEstado: ${tituloEstado}" 
+                             style="width: 32px; height: 32px; background: ${colorFondo}; border: 1px solid ${colorBorde}; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; color: #555; cursor: pointer;">
+                            ${dia.diaNum}
+                        </div>
+                    `;
+                    contenedorCalorAlumno.insertAdjacentHTML('beforeend', celdaHtml);
+                });
             } else {
                 panelMatriz.style.display = "none";
+                panelInfoAlumno.style.display = "none";
+                panelMatrizAlumno.style.display = "none";
             }
         })
         .catch(err => {

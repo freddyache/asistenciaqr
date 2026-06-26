@@ -217,6 +217,7 @@
                 </div>
 
                 <button class="btn-main btn-green" onclick="generarEstadisticas()" style="margin-top:10px;">Consultar Reporte</button>
+                <button id="btn-pdf-mensual-seccion" class="btn-main btn-dark" onclick="generarPDFMensualSeccion()" style="margin-top:10px; display:none; background:#e74c3c;">📄 Generar PDF Mensual Sección</button>
             </div>
 
             <div id="panel-info-alumno" class="card" style="display: none; background: #fdfdfd; border-left: 5px solid var(--primary);">
@@ -370,7 +371,7 @@
     </div>
 
 <script>
-    const scriptURL = 'https://script.google.com/macros/s/AKfycbzSoUnxcKr4lGs84BY_srJfN_UgXVAmSUNZ3GyEohxcBE3fyQiawlTgcSCMzcMtvwpcwg/exec'; 
+    const scriptURL = 'https://script.google.com/macros/s/AKfycby3cuE-5yf1ntn8KDqN0Ys9HVWVFy6ZRTgH_tVS5WifmkAI_MlivG2xHdZ3aYsf0lZ1DQ/exec'; 
     const html5QrCode = new Html5Qrcode("reader");
     let isProcessing = false;
 
@@ -413,6 +414,14 @@ window.onload = function() {
 
         document.getElementById('div-rango-fechas').style.display = (filtroFecha === 'rango') ? 'flex' : 'none';
         document.getElementById('div-mes').style.display = (filtroFecha === 'mes') ? 'block' : 'none';
+
+        // NUEVO: Mostrar botón PDF mensual solo si se selecciona "Grado y Sección" y filtro "Mes Completo"
+        const btnPdfMensual = document.getElementById('btn-pdf-mensual-seccion');
+        if (tipoReporte === 'seccion' && filtroFecha === 'mes') {
+            btnPdfMensual.style.display = 'block';
+        } else {
+            btnPdfMensual.style.display = 'none';
+        }
     }
 
     // PROCESAMIENTO Y DIBUJO DEL MAPA DE CALOR
@@ -618,6 +627,41 @@ window.onload = function() {
 
     function iniciarCamara() {
         html5QrCode.start({ facingMode: "environment" }, { fps: 15, qrbox: { width: 250, height: 250 }, aspectRatio: 1.0 }, onScanSuccess);
+    }
+    function generarPDFMensualSeccion() {
+        const grado = document.getElementById('r-grado').value;
+        const seccion = document.getElementById('r-seccion').value;
+        const mes = document.getElementById('r-mes').value;
+
+        if (!mes) return alert("Por favor, seleccione el mes para generar el reporte tabular.");
+
+        const btn = document.getElementById('btn-pdf-mensual-seccion');
+        const originalText = btn.innerText;
+        btn.innerText = "⏳ Generando PDF...";
+        btn.disabled = true;
+
+        const datos = {
+            action: 'reporteMensualPDF',
+            gradoSeccion: grado + seccion,
+            mes: mes
+        };
+
+        fetch(scriptURL, { method: 'POST', body: JSON.stringify(datos) })
+        .then(r => r.text())
+        .then(url => {
+            btn.innerText = originalText;
+            btn.disabled = false;
+            if(url.includes("http")) { 
+                window.open(url, '_blank'); 
+            } else {
+                alert("Error al recibir el reporte: " + url);
+            }
+        })
+        .catch(err => {
+            btn.innerText = originalText;
+            btn.disabled = false;
+            console.error(err);
+        });
     }
 </script>
 </body>

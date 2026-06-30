@@ -605,7 +605,7 @@ window.onload = function() {
                     <div style="font-size:20px; font-weight:bold; color:${color};">${res.estado}</div>
                 </div>`;
             } else { statusMsg.innerHTML = "<span style='color:red'>❌ No registrado</span>"; }
-            setTimeout(() => { isProcessing = false; statusMsg.innerHTML = "Esperando código QR..."; }, 2500);
+            setTimeout(() => { isProcessing = false; statusMsg.innerHTML = "Esperando código QR..."; }, 1000);
         }).catch(() => { isProcessing = false; });
     }
 

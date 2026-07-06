@@ -371,7 +371,7 @@
     </div>
 
 <script>
-    const scriptURL = 'https://script.google.com/macros/s/AKfycbz11FPLPps1uHAZ2jR81KiHaO-NVCtiZINDw_4E3hJ_zYz69_YMS-Kx3RZ0RvwDU5x6rA/exec'; 
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbx54uu10KSZx1W96bLmt00bzQAYP4-E-xf5cIEp6mngpeOsE9e25xiEh4mj4oBVB4X-Dw/exec'; 
     const html5QrCode = new Html5Qrcode("reader");
     let isProcessing = false;
 
@@ -594,20 +594,38 @@ window.onload = function() {
     }
 
     function onScanSuccess(decodedText) {
-        if (isProcessing) return; isProcessing = true;
+        if (isProcessing) return; 
+        isProcessing = true; // Bloquea escaneos fantasmas repetidos en el mismo segundo
+        
         const statusMsg = document.getElementById('status-msg');
-        statusMsg.innerHTML = "<span style='color:var(--primary)'>⏳ Registrando...</span>";
+        statusMsg.innerHTML = "<span style='color:var(--primary); font-weight:bold;'>⏳ Registrando...</span>";
+        
+        // Ejecución en paralelo hacia el servidor optimizado
         fetch(scriptURL, { method: 'POST', body: JSON.stringify({ action: "asistencia", id: decodedText }) })
-        .then(r => r.json()).then(res => {
+        .then(r => r.json())
+        .then(res => {
             if (res.status === "success") {
-                let color = res.estado === "TARDANZA" ? "red" : "green";
-                statusMsg.innerHTML = `<div style="border:2px solid ${color}; padding:10px; border-radius:10px; background:white;">
-                    <div style="font-size:14px; color:#333;">${res.nombre}</div>
-                    <div style="font-size:20px; font-weight:bold; color:${color};">${res.estado}</div>
+                let color = res.estado === "TARDANZA" ? "#f39c12" : (res.estado === "FUERA DE HORARIO" ? "red" : "green");
+                statusMsg.innerHTML = `
+                <div style="border:2px solid ${color}; padding:10px; border-radius:10px; background:white; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
+                    <div style="font-size:14px; color:#333; font-weight:bold;">${res.nombre}</div>
+                    <div style="font-size:22px; font-weight:bold; color:${color}; margin-top:4px;">${res.estado}</div>
                 </div>`;
-            } else { statusMsg.innerHTML = "<span style='color:red'>❌ No registrado</span>"; }
-            setTimeout(() => { isProcessing = false; statusMsg.innerHTML = "Esperando código QR..."; }, 1000);
-        }).catch(() => { isProcessing = false; });
+            } else { 
+                statusMsg.innerHTML = "<span style='color:red; font-weight:bold;'>❌ DNI No Registrado</span>"; 
+            }
+            
+            // Reducido a 600ms para que el lector vuelva a estar disponible casi de inmediato
+            setTimeout(() => { 
+                isProcessing = false; 
+                statusMsg.innerHTML = "<span style='color:green; font-weight:bold;'>📷 Esperando código QR...</span>"; 
+            }, 600);
+        })
+        .catch((err) => { 
+            console.error(err);
+            isProcessing = false; 
+            statusMsg.innerHTML = "<span style='color:red;'>⚠️ Error de conexión</span>";
+        });
     }
 
     function guardarAlumno() {
@@ -627,7 +645,18 @@ window.onload = function() {
     }
 
     function iniciarCamara() {
-        html5QrCode.start({ facingMode: "environment" }, { fps: 15, qrbox: { width: 250, height: 250 }, aspectRatio: 1.0 }, onScanSuccess);
+        // Incrementamos los fps para capturar el QR más rápido al pasar el carné en movimiento
+        html5QrCode.start(
+            { facingMode: "environment" }, 
+            { 
+                fps: 26,             // Mayor tasa de muestreo por segundo
+                qrbox: { width: 250, height: 250 }, 
+                aspectRatio: 1.0 
+            }, 
+            onScanSuccess
+        ).catch(err => {
+            document.getElementById('status-msg').innerText = "Error al abrir cámara: " + err;
+        });
     }
     function generarPDFMensualSeccion() {
         const grado = document.getElementById('r-grado').value;

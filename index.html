@@ -371,7 +371,7 @@
     </div>
 
 <script>
-    const scriptURL = 'https://script.google.com/macros/s/AKfycbzikSjZ99optS1vrzuK-lHewlrPEMeB11rQiTQphuuGgexq6LIJsVGP57NirmnoyPz_Ew/exec'; 
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbz11FPLPps1uHAZ2jR81KiHaO-NVCtiZINDw_4E3hJ_zYz69_YMS-Kx3RZ0RvwDU5x6rA/exec'; 
     const html5QrCode = new Html5Qrcode("reader");
     let isProcessing = false;
 
@@ -415,10 +415,11 @@ window.onload = function() {
         document.getElementById('div-rango-fechas').style.display = (filtroFecha === 'rango') ? 'flex' : 'none';
         document.getElementById('div-mes').style.display = (filtroFecha === 'mes') ? 'block' : 'none';
 
-        // NUEVO: Mostrar botón PDF mensual solo si se selecciona "Grado y Sección" y filtro "Mes Completo"
+        // ACTUALIZADO: Mostrar botón PDF tabular si es por "Grado y Sección" y el filtro es "Mes" O "Rango"
         const btnPdfMensual = document.getElementById('btn-pdf-mensual-seccion');
-        if (tipoReporte === 'seccion' && filtroFecha === 'mes') {
+        if (tipoReporte === 'seccion' && (filtroFecha === 'mes' || filtroFecha === 'rango')) {
             btnPdfMensual.style.display = 'block';
+            btnPdfMensual.innerText = filtroFecha === 'mes' ? '📄 Generar PDF Mensual Sección' : '📄 Generar PDF Rango Sección';
         } else {
             btnPdfMensual.style.display = 'none';
         }
@@ -631,9 +632,14 @@ window.onload = function() {
     function generarPDFMensualSeccion() {
         const grado = document.getElementById('r-grado').value;
         const seccion = document.getElementById('r-seccion').value;
+        const filtroFecha = document.getElementById('rep-fecha-tipo').value;
         const mes = document.getElementById('r-mes').value;
+        const fechaInicio = document.getElementById('r-fecha-inicio').value;
+        const fechaFin = document.getElementById('r-fecha-fin').value;
 
-        if (!mes) return alert("Por favor, seleccione el mes para generar el reporte tabular.");
+        // Validaciones preventivas
+        if (filtroFecha === 'mes' && !mes) return alert("Por favor, seleccione el mes para generar el reporte.");
+        if (filtroFecha === 'rango' && (!fechaInicio || !fechaFin)) return alert("Por favor, complete el intervalo de fechas.");
 
         const btn = document.getElementById('btn-pdf-mensual-seccion');
         const originalText = btn.innerText;
@@ -643,7 +649,10 @@ window.onload = function() {
         const datos = {
             action: 'reporteMensualPDF',
             gradoSeccion: grado + seccion,
-            mes: mes
+            filtroFecha: filtroFecha,
+            mes: mes,
+            fechaInicio: fechaInicio,
+            fechaFin: fechaFin
         };
 
         fetch(scriptURL, { method: 'POST', body: JSON.stringify(datos) })
@@ -654,7 +663,7 @@ window.onload = function() {
             if(url.includes("http")) { 
                 window.open(url, '_blank'); 
             } else {
-                alert("Error al recibir el reporte: " + url);
+                alert("Aviso del servidor: " + url);
             }
         })
         .catch(err => {
